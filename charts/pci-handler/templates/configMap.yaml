@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: pci-config
+  namespace: {{ include "common.namespace" . }} 
+data:
+  DMAAPSERVER: message-router.onap-message-router
+  SDNRSERVICE: 'sdnc.onap-sdnc:8181'
+  OOFSERVICE: 'oof-osdf.onap-oof:8699'
+  POLICYSERVICE: 'pdp.onap-policy:8081'
+  MANAGERAPIKEY: 7hs1Hr719bMsarWK 
+  MANAGERSECRETKEY: So9h10kxu1JwsRsyMO8JhSek
+  PCIMSAPIKEY: za9nHWCpUmjzeX5S
+  PCIMSSECRETKEY: zQ5Xl6TSERGG2AuI3vsyRcKf
+  SDNRAPIKEY: BLWCuDfaWorpGHOz
+  POLICYAPIKEY: 3eHuxPUqAnjuJ0g9
+  

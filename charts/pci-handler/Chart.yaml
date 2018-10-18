@@ -1,0 +1,4 @@
+apiVersion: v1
+description: pci-handler microservice
+name: pci-handler
+version: 0.1.0
