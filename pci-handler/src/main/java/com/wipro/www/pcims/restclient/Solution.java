@@ -23,11 +23,11 @@ package com.wipro.www.pcims.restclient;
 import java.util.ArrayList;
 import java.util.List;
 
-public class Solutions {
+public class Solution {
     String startTime = null;
     String finishTime = null;
     String networkId = null;
-    List<PciSolutions> pciSolutions = new ArrayList<>();
+    List<PciSolution> pciSolutions = new ArrayList<>();
 
     public String getStartTime() {
         return startTime;
@@ -53,12 +53,22 @@ public class Solutions {
         this.networkId = networkId;
     }
 
-    public List<PciSolutions> getPciSolutions() {
+    public List<PciSolution> getPciSolutions() {
         return pciSolutions;
     }
 
-    public void setPciSolutions(List<PciSolutions> pciSolutions) {
+    /**
+     * Sets PciSolutions.
+     */
+    public void setPciSolutions(List<PciSolution> pciSolutions) {
 
         this.pciSolutions = pciSolutions;
+
+    }
+
+    @Override
+    public String toString() {
+        return "Solutions [startTime=" + startTime + ", finishTime=" + finishTime + ", networkId=" + networkId
+                + ", pciSolutions=" + pciSolutions + "]";
     }
 }

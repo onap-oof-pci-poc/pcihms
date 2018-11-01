@@ -28,7 +28,7 @@ public class AsyncResponseBody {
     String requestId = null;
     String requestStatus = null;
     String statusMessage = null;
-    List<Solutions> solutions;
+    List<Solution> solutions;
 
     public String getTransactionId() {
         return transactionId;
@@ -68,11 +68,11 @@ public class AsyncResponseBody {
         this.statusMessage = statusMessage;
     }
 
-    public List<Solutions> getSolutions() {
+    public List<Solution> getSolutions() {
         return solutions;
     }
 
-    public void setSolutions(List<Solutions> solutions) {
+    public void setSolutions(List<Solution> solutions) {
         this.solutions = solutions;
     }
 

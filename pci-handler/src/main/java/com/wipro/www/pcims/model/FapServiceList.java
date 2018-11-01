@@ -24,6 +24,11 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 public class FapServiceList {
 
+    @Override
+    public String toString() {
+        return "FapServiceList [alias=" + alias + ", x0005b9Lte=" + x0005b9Lte + ", cellConfig=" + cellConfig + "]";
+    }
+
     @JsonProperty("alias")
     private String alias;
 

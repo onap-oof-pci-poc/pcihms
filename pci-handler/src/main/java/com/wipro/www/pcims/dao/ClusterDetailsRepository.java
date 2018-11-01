@@ -24,7 +24,9 @@ import com.wipro.www.pcims.entity.ClusterDetails;
 import java.util.List;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
+import org.springframework.stereotype.Repository;
 
+@Repository
 public interface ClusterDetailsRepository extends CrudRepository<ClusterDetails, String> {
 
     @Query(nativeQuery = true, value = "UPDATE CLUSTER_DETAILS SET clusterInfo=?1  WHERE clusterId = ?2")

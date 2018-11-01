@@ -23,6 +23,7 @@ package com.wipro.www.pcims;
 import com.wipro.www.pcims.restclient.AsyncResponseBody;
 
 import org.slf4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -32,6 +33,9 @@ import org.springframework.web.bind.annotation.RestController;
 public class PciController {
     private static final Logger log = org.slf4j.LoggerFactory.getLogger(PciController.class);
 
+    @Autowired
+    PciRequestsComponent pciRequestsComponent;
+
     @RequestMapping(value = "/callbackUrl", method = RequestMethod.POST)
     String callBackUrl(@RequestBody AsyncResponseBody callback) {
         log.debug("received request to callback url");
@@ -39,13 +43,12 @@ public class PciController {
         log.debug("AsyncResponseBody{}", async);
 
         String transactionId = callback.getTransactionId();
-        log.debug("transaction id{}", transactionId);
+        log.debug("transaction id {}", transactionId);
 
-        PciRequestsComponent pciRequestsComponent = new PciRequestsComponent();
         long childThreadId = pciRequestsComponent.getChildThread(transactionId);
-        log.debug("childThreadId{}", childThreadId);
+        log.debug("childThreadId {}", childThreadId);
 
-        SdnrNotificationHandlingState.childThreadMap.get(childThreadId).putResponse(callback);
+        SdnrNotificationHandlingState.getChildThreadMap().get(childThreadId).putResponse(callback);
         return "Forwarded to child thread";
 
     }

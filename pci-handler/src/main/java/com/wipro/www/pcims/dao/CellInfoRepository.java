@@ -23,7 +23,9 @@ package com.wipro.www.pcims.dao;
 import com.wipro.www.pcims.entity.CellInfo;
 
 import org.springframework.data.repository.CrudRepository;
+import org.springframework.stereotype.Repository;
 
+@Repository
 public interface CellInfoRepository extends CrudRepository<CellInfo, String> {
 
     // public void

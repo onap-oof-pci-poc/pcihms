@@ -20,19 +20,30 @@
 
 package com.wipro.www.pcims;
 
+import java.util.List;
+import java.util.concurrent.LinkedBlockingQueue;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class MainThread implements Runnable {
     private static Logger log = LoggerFactory.getLogger(MainThread.class);
 
+    private NewNotification newNotification;
+
     @Override
     public void run() {
         log.debug("Starting pci context");
-        PciContext pciContext = new PciContext();
+        PciContext pciContext = new PciContext(new LinkedBlockingQueue<List<String>>(), newNotification);
         log.debug("initializing pci state to wait state");
-        pciContext.setPciState(new WaitState());
+        WaitState waitState = WaitState.getInstance();
+        pciContext.setPciState(waitState);
         pciContext.stateChange(pciContext);
+    }
+
+    public MainThread(NewNotification newNotification) {
+        super();
+        this.newNotification = newNotification;
     }
 
 }

@@ -28,7 +28,7 @@ public class Notification {
     private String requestId;
 
     @JsonProperty("AAI")
-    private String aai;
+    private Object aai;
 
     @JsonProperty("from")
     private String from;
@@ -50,7 +50,7 @@ public class Notification {
      * Parameterized Constructor.
      */
 
-    public Notification(String requestId, String aai, String from, String version, String action,
+    public Notification(String requestId, Object aai, String from, String version, String action,
             NotificationPayload payload) {
         super();
         this.requestId = requestId;
@@ -93,11 +93,11 @@ public class Notification {
         this.from = from;
     }
 
-    public String getAai() {
+    public Object getAai() {
         return aai;
     }
 
-    public void setAai(String aai) {
+    public void setAai(Object aai) {
         this.aai = aai;
     }
 

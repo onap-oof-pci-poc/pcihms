@@ -22,10 +22,9 @@ global: # global defaults
 
 
 # application image
-repository: registry.hub.docker.com
 image: postgres:latest
-pullPolicy: IfNotPresent
-initImage: postgres-init:1.0
+pullPolicy: Always
+initImage: coe:5000/postgres-init:1.0
 
 # application configuration
 config:

@@ -60,7 +60,8 @@ public class ChildStatusUpdateState implements PciState {
                     fapServiceList = mapper.readValue(notification, FapServiceList.class);
                     log.debug("fapServiceList{}", fapServiceList);
 
-                    SdnrNotificationHandlingState.childThreadMap.get(childThreadId).putInQueue(fapServiceList);
+                    SdnrNotificationHandlingState.getChildThreadMap().get(childThreadId)
+                            .putInQueueWithNotify(fapServiceList);
                     pciContext.setPciState(new BufferedNotificationHandlingState());
                     pciContext.stateChange(pciContext);
 

@@ -22,7 +22,12 @@ package com.wipro.www.pcims.restclient;
 
 public class CellIdList {
 
-    String cellId = null;
+    private String cellId;
+
+    @Override
+    public String toString() {
+        return "CellIdList [cellId=" + cellId + "]";
+    }
 
     public String getCellId() {
         return cellId;

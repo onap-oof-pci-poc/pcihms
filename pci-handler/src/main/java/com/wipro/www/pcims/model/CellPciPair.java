@@ -33,6 +33,15 @@ public class CellPciPair {
 
     }
 
+    /**
+     * Parameterized constructor.
+     */
+    public CellPciPair(String cellId, int physicalCellId) {
+        super();
+        this.cellId = cellId;
+        this.physicalCellId = physicalCellId;
+    }
+
     public String getCellId() {
         return cellId;
     }

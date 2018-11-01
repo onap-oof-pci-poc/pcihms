@@ -24,10 +24,12 @@ import com.wipro.www.pcims.entity.PciRequests;
 
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
+import org.springframework.stereotype.Repository;
 
+@Repository
 public interface PciRequestsRepository extends CrudRepository<PciRequests, String> {
 
-    @Query(nativeQuery = true, value = "SELECT child_thread_id FROM pci_requests WHERE transacton_id = ?1")
+    @Query(nativeQuery = true, value = "SELECT child_thread_id FROM pci_requests WHERE transaction_id = ?1")
     public long getChildThreadMapping(String transactionId);
 
 }

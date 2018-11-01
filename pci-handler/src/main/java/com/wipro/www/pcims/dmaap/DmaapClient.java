@@ -28,7 +28,7 @@ import com.att.nsa.cambria.client.CambriaClientBuilders.TopicManagerBuilder;
 import com.att.nsa.cambria.client.CambriaConsumer;
 import com.att.nsa.cambria.client.CambriaTopicManager;
 import com.wipro.www.pcims.Configuration;
-import com.wipro.www.pcims.WaitState;
+import com.wipro.www.pcims.NewNotification;
 import com.wipro.www.pcims.dao.DmaapNotificationsRepository;
 import com.wipro.www.pcims.entity.DmaapNotifications;
 import java.io.IOException;
@@ -53,6 +53,7 @@ public class DmaapClient {
     private static Logger log = LoggerFactory.getLogger(DmaapClient.class);
     private static final String CONSUMER = "CONSUMER";
     private static final String PRODUCER = "PRODUCER";
+    private NewNotification newNotification;
 
     public class NotificationCallback {
         DmaapClient dmaapClient;
@@ -72,20 +73,22 @@ public class DmaapClient {
                 log.debug(dmaapNotification.toString());
             }
             dmaapNotificationsRepository.save(dmaapNotification);
-            WaitState waitState = WaitState.getInstance();
-            waitState.putSdnrNotification("notification in queue");
+            // WaitState waitState = WaitState.getInstance();
+            // waitState.putSdnrNotification("notification in queue");
+            newNotification.setNewNotif(true);
         }
     }
 
     /**
      * init dmaap client.
      */
-    public void initClient() {
+    public void initClient(NewNotification newNotification) {
         log.debug("initializing client");
         configuration = Configuration.getInstance();
         if (log.isDebugEnabled()) {
             log.debug(configuration.toString());
         }
+        this.newNotification = newNotification;
         createSdnrTopic();
         createPolicyTopic();
         subscribeToPolicyTopic();

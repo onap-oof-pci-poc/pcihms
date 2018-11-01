@@ -92,14 +92,6 @@ public class Graph {
     }
 
     /**
-     * Returns the set of vertices adjacent to v in this graph.
-     */
-    public Iterable<CellPciPair> adjacentTo(CellPciPair start) {
-        validateVertex(start);
-        return this.cellPciNeighbourMap.get(start);
-    }
-
-    /**
      * Returns true if v is a vertex in this graph.
      */
     public boolean hasVertex(CellPciPair start) {
@@ -119,26 +111,15 @@ public class Graph {
      * Updates Vertex.
      */
     public void updateVertex(CellPciPair oldPair, CellPciPair newPair) {
-        log.debug("mapsss {}" + this.cellPciNeighbourMap);
         String cell1 = oldPair.getCellId();
         String cell2 = newPair.getCellId();
-        log.debug("equal:" + cell1.equals(cell2));
-        log.debug("Oldpair {}" + oldPair);
-        log.debug("NewPair " + newPair);
-        log.debug("condition before if {}" + this.cellPciNeighbourMap.get(oldPair));
-        log.debug("Contains oldPair: " + cellPciNeighbourMap.containsKey(oldPair));
-        log.debug("cell1 =1 cell2? " + cell1.equals(cell2));
 
         if (cell1.equals(cell2)) {
-
-            log.debug("old" + this.cellPciNeighbourMap.get(oldPair));
-            log.debug("condition {}" + this.cellPciNeighbourMap.get(oldPair));
 
             this.cellPciNeighbourMap.put(newPair, this.cellPciNeighbourMap.get(oldPair));
             this.cellPciNeighbourMap.remove(oldPair);
 
         }
-        log.debug("map after updating {}" + cellPciNeighbourMap);
         for (Map.Entry<CellPciPair, ArrayList<CellPciPair>> entry : this.cellPciNeighbourMap.entrySet()) {
 
             ArrayList<CellPciPair> al = entry.getValue();
@@ -149,11 +130,10 @@ public class Graph {
                         al.remove(oldPair);
                         al.add(newPair);
                     }
-                    this.cellPciNeighbourMap.put(entry.getKey(), al);
                 }
             }
         }
-        log.debug("Final Map" + cellPciNeighbourMap);
+        log.debug("Final Map {}", cellPciNeighbourMap);
 
     }
 

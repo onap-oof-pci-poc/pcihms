@@ -20,8 +20,6 @@
 
 package com.wipro.www.pcims.utils;
 
-import com.wipro.www.pcims.Application;
-
 import java.io.BufferedReader;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -44,7 +42,7 @@ public class HttpRequester {
     private static final String UTF = "UTF-8";
     private static final String FAILMSG = "Post failed";
     private static final String AUTH = "Authorization";
-    private static Logger log = LoggerFactory.getLogger(Application.class);
+    private static Logger log = LoggerFactory.getLogger(HttpRequester.class);
 
     public static class MyHostnameVerifier implements HostnameVerifier {
 
@@ -75,7 +73,7 @@ public class HttpRequester {
             BufferedReader br = new BufferedReader(new InputStreamReader(connection.getInputStream()));
             String temp;
             int responseCode = connection.getResponseCode();
-
+            log.debug("response code: {}", responseCode);
             response = br.readLine();
             while ((temp = br.readLine()) != null) {
                 response = response.concat(temp);
@@ -104,7 +102,8 @@ public class HttpRequester {
         try {
             URL url = new URL(requestUrl);
 
-            HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+            HttpsURLConnection connection = (HttpsURLConnection) url.openConnection();
+            connection.setHostnameVerifier(new MyHostnameVerifier());
             connection.setDoOutput(true);
             connection.setDoInput(true);
             connection.setRequestMethod("POST");
@@ -118,6 +117,8 @@ public class HttpRequester {
             writer.close();
             BufferedReader br = new BufferedReader(new InputStreamReader(connection.getInputStream()));
             String temp;
+            int responseCode = connection.getResponseCode();
+            log.debug("response code: {}", responseCode);
             response = br.readLine();
             while ((temp = br.readLine()) != null) {
                 response = response.concat(temp);
@@ -126,6 +127,7 @@ public class HttpRequester {
             connection.disconnect();
 
         } catch (Exception e) {
+            log.debug("Exception during post to policy: {}", e);
             response = FAILMSG;
         }
 
@@ -142,13 +144,10 @@ public class HttpRequester {
         try {
             URL url = new URL(requestUrl);
             HttpURLConnection connection = null;
-            connection = (HttpsURLConnection) url.openConnection();
-            ((HttpsURLConnection) connection).setHostnameVerifier(new MyHostnameVerifier());
-
+            connection = (HttpURLConnection) url.openConnection();
             connection.setDoInput(true);
             connection.setRequestMethod("GET");
             connection.setRequestProperty(ACCEPT, JSON);
-            connection.setRequestProperty(CONTENT, JSON);
             returnCode = connection.getResponseCode();
             InputStream connectionIn = null;
             if (returnCode == 200) {

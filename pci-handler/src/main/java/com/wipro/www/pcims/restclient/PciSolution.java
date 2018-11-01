@@ -20,7 +20,7 @@
 
 package com.wipro.www.pcims.restclient;
 
-public class PciSolutions {
+public class PciSolution {
 
     String cellId = null;
     int pci;

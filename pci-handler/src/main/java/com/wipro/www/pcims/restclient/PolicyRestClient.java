@@ -22,7 +22,6 @@ package com.wipro.www.pcims.restclient;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.wipro.www.pcims.Application;
 import com.wipro.www.pcims.Configuration;
 import com.wipro.www.pcims.utils.HttpRequester;
 import java.util.UUID;
@@ -30,7 +29,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class PolicyRestClient {
-    private static Logger log = LoggerFactory.getLogger(Application.class);
+    private static Logger log = LoggerFactory.getLogger(PolicyRestClient.class);
 
     private PolicyRestClient() {
 

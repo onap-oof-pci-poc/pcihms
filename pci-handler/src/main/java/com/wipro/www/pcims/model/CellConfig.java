@@ -20,9 +20,21 @@
 
 package com.wipro.www.pcims.model;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 public class CellConfig {
 
+    @JsonProperty(value = "LTE")
     private Lte lte;
+
+    public CellConfig() {
+
+    }
+
+    public CellConfig(Lte lte) {
+        super();
+        this.lte = lte;
+    }
 
     public Lte getLte() {
         return lte;

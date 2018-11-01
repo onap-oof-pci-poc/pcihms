@@ -44,14 +44,15 @@ public class ClusterModification {
         mainCellPciPair.setCellId(cellId);
         mainCellPciPair.setPhysicalCellId(phycellId);
         ArrayList<LteNeighborListInUseLteCell> newNeighbourList;
-        newNeighbourList = (ArrayList<LteNeighborListInUseLteCell>) fapser.getCellConfig().getLte().getRan()
-                .getNeighborListInUse().getLteNeighborListInUseLteCell();
+        newNeighbourList = fapser.getCellConfig().getLte().getRan().getNeighborListInUse()
+                .getLteNeighborListInUseLteCell();
 
         Map<CellPciPair, ArrayList<CellPciPair>> clusterMap;
         clusterMap = cluster.getCellPciNeighbourMap();
 
         // coe
-        ArrayList<CellPciPair> tempCellPair = new ArrayList();
+
+        ArrayList<CellPciPair> tempCellPair = new ArrayList<CellPciPair>();
         for (Map.Entry<CellPciPair, ArrayList<CellPciPair>> entry : clusterMap.entrySet()) {
             CellPciPair oldClusterKeys = entry.getKey();
             tempCellPair.add(oldClusterKeys);
@@ -81,7 +82,7 @@ public class ClusterModification {
             oldClusterArray.clear();
 
             for (int i = 0; i < newNeighbourList.size(); i++) {
-                String cid = newNeighbourList.get(i).getCid();
+                String cid = newNeighbourList.get(i).getAlias();
                 int phy = newNeighbourList.get(i).getPhyCellId();
                 CellPciPair val2 = new CellPciPair();
                 val2.setCellId(cid);
@@ -98,7 +99,7 @@ public class ClusterModification {
             mapVal.setCellId(cell);
             mapVal.setPhysicalCellId(physicalCell);
             for (int j = 0; j < newNeighbourList.size(); j++) {
-                String cid1 = newNeighbourList.get(j).getCid();
+                String cid1 = newNeighbourList.get(j).getAlias();
                 int phy1 = newNeighbourList.get(j).getPhyCellId();
                 CellPciPair val3 = new CellPciPair();
                 val3.setCellId(cid1);
@@ -115,7 +116,7 @@ public class ClusterModification {
         }
 
         for (int j = 0; j < newNeighbourList.size(); j++) {
-            String cid1 = newNeighbourList.get(j).getCid();
+            String cid1 = newNeighbourList.get(j).getAlias();
             int phy1 = newNeighbourList.get(j).getPhyCellId();
             CellPciPair val3 = new CellPciPair();
             val3.setCellId(cid1);
@@ -127,7 +128,7 @@ public class ClusterModification {
         }
 
         for (int k = 0; k < newNeighbourList.size(); k++) {
-            String cid2 = newNeighbourList.get(k).getCid();
+            String cid2 = newNeighbourList.get(k).getAlias();
             int phy2 = newNeighbourList.get(k).getPhyCellId();
             CellPciPair val5 = new CellPciPair();
             val5.setCellId(cid2);

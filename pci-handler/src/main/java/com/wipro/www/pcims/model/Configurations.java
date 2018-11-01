@@ -20,10 +20,32 @@
 
 package com.wipro.www.pcims.model;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 public class Configurations {
+    @JsonProperty("data")
     private Data data;
 
+    @JsonProperty("pnf-name")
     private String pnfName;
+
+    /**
+     * constructor.
+     *
+     */
+    public Configurations() {
+
+    }
+
+    /**
+     * Parameterized constructor.
+     *
+     */
+    public Configurations(Data data, String pnfName) {
+        super();
+        this.data = data;
+        this.pnfName = pnfName;
+    }
 
     public Data getData() {
         return data;

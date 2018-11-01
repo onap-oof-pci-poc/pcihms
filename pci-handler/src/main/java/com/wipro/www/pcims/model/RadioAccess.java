@@ -32,6 +32,10 @@ public class RadioAccess {
     @JsonProperty("FAPServiceList")
     private List<FapServiceList> fapServiceList;
 
+    public RadioAccess() {
+
+    }
+
     /**
      * Parameterized Constructor.
      */

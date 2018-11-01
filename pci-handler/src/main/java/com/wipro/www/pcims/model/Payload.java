@@ -20,23 +20,37 @@
 
 package com.wipro.www.pcims.model;
 
-import java.util.List;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import java.util.ArrayList;
+
+import java.util.ArrayList;
 
 public class Payload {
 
-    private List<Configurations> configuration;
+    @JsonProperty("Configurations")
+    private ArrayList<Configurations> configuration;
 
-    public List<Configurations> getConfiguration() {
+    public Payload() {
+
+    }
+
+    public Payload(ArrayList<Configurations> configuration) {
+        super();
+        this.configuration = configuration;
+    }
+
+    public ArrayList<Configurations> getConfiguration() {
         return configuration;
     }
 
-    public void setConfiguration(List<Configurations> configuration) {
+    public void setConfiguration(ArrayList<Configurations> configuration) {
         this.configuration = configuration;
     }
 
     @Override
     public String toString() {
         return "Payload [configuration=" + configuration + "]";
+
     }
 
 }

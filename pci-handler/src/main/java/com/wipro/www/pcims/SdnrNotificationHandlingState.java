@@ -35,10 +35,13 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.LinkedBlockingQueue;
+
 import org.slf4j.Logger;
 
 public class SdnrNotificationHandlingState implements PciState {
-    static Map<Long, ChildThread> childThreadMap = new HashMap<>();
+    private static Map<Long, ChildThread> childThreadMap = new HashMap<>();
     private static final Logger log = org.slf4j.LoggerFactory.getLogger(SdnrNotificationHandlingState.class);
 
     @Override
@@ -78,8 +81,7 @@ public class SdnrNotificationHandlingState implements PciState {
 
                             clusterId = clusterDetail.getClusterId();
                             long childThreadId = clusterDetailsComponent.getChildThread(clusterId);
-                            WaitState waitState = WaitState.getInstance();
-                            String childStatus = waitState.getChildStatus(childThreadId);
+                            String childStatus = pciContext.getChildStatus(childThreadId);
                             if (childStatus.equals("triggeredOof")) {
                                 pciContext.setNotifToBeProcessed(false);
                                 log.debug("notification is to be buffered");
@@ -104,12 +106,14 @@ public class SdnrNotificationHandlingState implements PciState {
 
                 if (clusterId == null) {
                     log.debug("creating new child:");
+                    BlockingQueue<FapServiceList> queue = new LinkedBlockingQueue<>();
 
-                    ChildThread child = new ChildThread();
-                    child.putInQueue(list);
+                    ChildThread child = new ChildThread(pciContext.getChildStatusUpdate(), queue);
+                    queue.put(list);
                     MainThreadComponent mainThreadComponent = BeanUtil.getBean(MainThreadComponent.class);
                     mainThreadComponent.getPool().execute(child);
                     pciContext.setPciState(new ChildTriggeringState());
+                    pciContext.stateChange(pciContext);
                 }
 
             }
@@ -118,6 +122,14 @@ public class SdnrNotificationHandlingState implements PciState {
             log.error("caught in sdnr notif handling state{}", e);
         }
 
+    }
+
+    public static void addChildThreadMap(Long childThreadId, ChildThread child) {
+        childThreadMap.put(childThreadId, child);
+    }
+
+    public static Map<Long, ChildThread> getChildThreadMap() {
+        return childThreadMap;
     }
 
 }

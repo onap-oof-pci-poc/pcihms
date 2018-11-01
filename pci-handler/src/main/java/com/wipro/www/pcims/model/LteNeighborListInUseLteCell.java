@@ -55,6 +55,19 @@ public class LteNeighborListInUseLteCell {
      * Parameterized Constructor.
      */
 
+    public LteNeighborListInUseLteCell(String pnfName, String enable, String alias, String mustInclude, String plmnId,
+            String cid, int phyCellId, String blacklisted) {
+        super();
+        this.pnfName = pnfName;
+        this.enable = enable;
+        this.alias = alias;
+        this.mustInclude = mustInclude;
+        this.plmnId = plmnId;
+        this.cid = cid;
+        this.phyCellId = phyCellId;
+        this.blacklisted = blacklisted;
+    }
+
     public String getMustInclude() {
         return mustInclude;
     }
@@ -112,13 +125,11 @@ public class LteNeighborListInUseLteCell {
     }
 
     public String getPlmnid() {
-        return plmnid;
+        return plmnId;
     }
 
-    public void setPlmnid(String plmnid) {
-        this.plmnid = plmnid;
+    public void setPlmnid(String plmnId) {
+        this.plmnId = plmnId;
     }
-
-    private String plmnid;
 
 }

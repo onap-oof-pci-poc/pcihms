@@ -113,15 +113,15 @@ public class TestClusterModification {
 
         System.out.println("map before" + cluster.getCellPciNeighbourMap());
 
-        String notif = "{  \n" + "\"alias\":\"Cell1\",\n" + "\"X0005b9Lte\":{  \n" + "\"phyCellIdInUse\":\"35\",\n"
+        String notif = "{  \n" + "\"alias\":\"Cell1\",\n" + "\"X0005b9Lte\":{  \n" + "\"phyCellIdInUse\":\"89\",\n"
                 + "\"pnfName\":\"DU-1\"\n" + "},\n" + "\"CellConfig\":{  \n" + "\"LTE\":{  \n" + "\"RAN\":{  \n"
-                + "\"CellIdentity\":\"25\",\n" + "\"NeighborListInUse\":{  \n" + "\"LTECellNumberOfEntries\":\"2\",\n"
+                + "\"CellIdentity\":\"6\",\n" + "\"NeighborListInUse\":{  \n" + "\"LTECellNumberOfEntries\":\"2\",\n"
                 + "\"LTENeighborListInUseLTECell\":[  \n" + "{  \n" + "\"pnfName\":\"DU-2\",\n"
                 + "\"enable\":\"true\",\n" + "\"alias\":\"Cell10\",\n" + "\"mustInclude\":\"true\",\n"
                 + "\"plmnid\":\"123456\",\n" + "\"cid\":\"2\",\n" + "\"phyCellId\":\"22\",\n"
                 + "\"blacklisted\":\"false\"\n" + "},\n" + "{  \n" + "\"pnfName\":\"DU-3\",\n"
                 + "\"enable\":\"true\",\n" + "\"alias\":\"Cell15\",\n" + "\"mustInclude\":\"true\",\n"
-                + "\"plmnid\":\"123456\",\n" + "\"cid\":\"5\",\n" + "\"phyCellId\":\"24\",\n"
+                + "\"plmnid\":\"123456\",\n" + "\"cid\":\"25\",\n" + "\"phyCellId\":\"35\",\n"
                 + "\"blacklisted\":\"false\"\n" + "}\n" + "]\n" + "}\n" + "}\n" + "}\n" + "}\n" + "}";
 
         ObjectMapper mapper = new ObjectMapper();

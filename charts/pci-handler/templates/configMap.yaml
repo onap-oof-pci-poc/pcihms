@@ -4,14 +4,14 @@ metadata:
   name: pci-config
   namespace: {{ include "common.namespace" . }} 
 data:
-  DMAAPSERVER: message-router.onap-message-router
-  SDNRSERVICE: 'sdnc.onap-sdnc:8181'
-  OOFSERVICE: 'oof-osdf.onap-oof:8699'
+  DMAAPSERVER: dmaap.onap-message-router
+  SDNRSERVICE: '10.143.125.134:8081'
+  OOFSERVICE: '10.143.125.134:8081'
   POLICYSERVICE: 'pdp.onap-policy:8081'
-  MANAGERAPIKEY: 7hs1Hr719bMsarWK 
-  MANAGERSECRETKEY: So9h10kxu1JwsRsyMO8JhSek
-  PCIMSAPIKEY: za9nHWCpUmjzeX5S
-  PCIMSSECRETKEY: zQ5Xl6TSERGG2AuI3vsyRcKf
-  SDNRAPIKEY: BLWCuDfaWorpGHOz
-  POLICYAPIKEY: 3eHuxPUqAnjuJ0g9
+  MANAGERAPIKEY: NCUyx58LMqtIEIf9
+  MANAGERSECRETKEY: g2zAx2MwQiuFXIahgJD7HaoP
+  PCIMSAPIKEY: 80NRptnQ59pQThtw
+  PCIMSSECRETKEY: 4I0FIyBjG8bATz35LuOCAaIC
+  SDNRAPIKEY: PFZiSjFoHFKseDVF
+  POLICYAPIKEY: GJp0leLfmznogCDj
   

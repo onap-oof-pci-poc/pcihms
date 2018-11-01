@@ -20,11 +20,14 @@
 
 package com.wipro.www.pcims.model;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 public class Response {
 
+    @JsonProperty(value = "cellId")
     private String cellId;
 
-    private int physicalCellId;
+    private int pci;
 
     public String getCellId() {
         return cellId;
@@ -34,12 +37,12 @@ public class Response {
         this.cellId = cellId;
     }
 
-    public int getPhysicalCellId() {
-        return physicalCellId;
+    public int getPci() {
+        return pci;
     }
 
-    public void setPhysicalCellId(int physicalCellId) {
-        this.physicalCellId = physicalCellId;
+    public void setPci(int pci) {
+        this.pci = pci;
     }
 
 }

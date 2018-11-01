@@ -20,9 +20,21 @@
 
 package com.wipro.www.pcims.model;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 public class Rf {
 
+    @JsonProperty(value = "PhyCellID")
     private String physicalCellId;
+
+    public Rf() {
+
+    }
+
+    public Rf(String physicalCellId) {
+        super();
+        this.physicalCellId = physicalCellId;
+    }
 
     public String getPhysicalCellId() {
         return physicalCellId;

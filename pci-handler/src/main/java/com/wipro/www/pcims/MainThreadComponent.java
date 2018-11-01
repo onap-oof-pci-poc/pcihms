@@ -21,7 +21,7 @@ public class MainThreadComponent {
     /**
      * main thread initialization.
      */
-    public void init() {
+    public void init(NewNotification newNotification) {
         log.debug("initializing main thread");
         log.debug("initializing executors");
         Configuration configuration = Configuration.getInstance();
@@ -29,7 +29,7 @@ public class MainThreadComponent {
         log.debug("pool creating");
         pool = Executors.newFixedThreadPool(maximumClusters);
         log.debug("pool created");
-        Thread thread = new Thread(new MainThread());
+        Thread thread = new Thread(new MainThread(newNotification));
         thread.start();
     }
 }

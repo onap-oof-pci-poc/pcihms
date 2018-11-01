@@ -20,11 +20,19 @@
 
 package com.wipro.www.pcims;
 
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.BlockingQueue;
+
 public class PciContext implements PciState {
     private PciState pciState;
     boolean notifToBeProcessed;
     private String sdnrNotification;
     private long childThreadId;
+    private Map<Long, String> childStatus;
+    private BlockingQueue<List<String>> childStatusUpdate;
+    private NewNotification newNotification;
 
     public String getSdnrNotification() {
         return sdnrNotification;
@@ -36,10 +44,20 @@ public class PciContext implements PciState {
 
     PciContext(PciState pciState) {
         this.pciState = pciState;
+        this.childStatus = new HashMap<>();
     }
 
     public PciContext() {
 
+    }
+
+    /**
+     * Parameterized constructor.
+     */
+    public PciContext(BlockingQueue<List<String>> childStatusUpdate, NewNotification newNotification) {
+        this.setChildStatusUpdate(childStatusUpdate);
+        this.setNewNotification(newNotification);
+        this.childStatus = new HashMap<>();
     }
 
     public PciState getPciState() {
@@ -69,6 +87,31 @@ public class PciContext implements PciState {
     @Override
     public void stateChange(PciContext pciContext) {
         this.pciState.stateChange(pciContext);
+    }
+
+    public BlockingQueue<List<String>> getChildStatusUpdate() {
+        return childStatusUpdate;
+    }
+
+    public void setChildStatusUpdate(BlockingQueue<List<String>> childStatusUpdate) {
+        this.childStatusUpdate = childStatusUpdate;
+    }
+
+    public void addChildStatus(Long threadId, String status) {
+        this.childStatus.put(threadId, status);
+    }
+
+    public String getChildStatus(Long threadId) {
+        return childStatus.get(threadId);
+
+    }
+
+    public NewNotification getNewNotification() {
+        return newNotification;
+    }
+
+    public void setNewNotification(NewNotification newNotification) {
+        this.newNotification = newNotification;
     }
 
 }

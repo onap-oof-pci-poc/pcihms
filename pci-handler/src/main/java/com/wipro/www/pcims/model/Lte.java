@@ -20,9 +20,21 @@
 
 package com.wipro.www.pcims.model;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 public class Lte {
 
+    @JsonProperty(value = "RAN")
     private Ran ran;
+
+    public Lte() {
+
+    }
+
+    public Lte(Ran ran) {
+        super();
+        this.ran = ran;
+    }
 
     public Ran getRan() {
         return ran;

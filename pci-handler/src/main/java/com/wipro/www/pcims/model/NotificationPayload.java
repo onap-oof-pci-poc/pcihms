@@ -27,6 +27,10 @@ public class NotificationPayload {
     @JsonProperty("RadioAccess")
     private RadioAccess radioAccess;
 
+    public NotificationPayload() {
+
+    }
+
     /**
      * Parameterized Constructor.
      */

@@ -20,9 +20,21 @@
 
 package com.wipro.www.pcims.model;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 public class Data {
 
+    @JsonProperty("FAPService")
     private FapService fapservice;
+
+    public Data() {
+
+    }
+
+    public Data(FapService fapservice) {
+        super();
+        this.fapservice = fapservice;
+    }
 
     public FapService getFapservice() {
         return fapservice;

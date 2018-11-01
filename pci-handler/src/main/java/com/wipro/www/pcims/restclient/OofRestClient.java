@@ -22,7 +22,6 @@ package com.wipro.www.pcims.restclient;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.wipro.www.pcims.Application;
 import com.wipro.www.pcims.ConfigPolicy;
 import com.wipro.www.pcims.Configuration;
 import com.wipro.www.pcims.utils.HttpRequester;
@@ -32,7 +31,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class OofRestClient {
-    private static Logger log = LoggerFactory.getLogger(Application.class);
+    private static Logger log = LoggerFactory.getLogger(OofRestClient.class);
 
     private OofRestClient() {
 
@@ -43,7 +42,7 @@ public class OofRestClient {
      */
 
     public static String queryOof(int numSolutions, String transactionId, String requestType,
-            List<CellIdList> cellIdLists, String networkId, List<String> optimizers) {
+            List<CellIdList> cellIdList, String networkId, List<String> optimizers) {
         log.debug("inside queryoof");
 
         String response = "";
@@ -65,7 +64,7 @@ public class OofRestClient {
             int timeout = (int) config.getConfig().get("PCI_NEIGHBOR_CHANGE_CLUSTER_TIMEOUT_IN_SECS");
             requestInfo.setTimeout(timeout);
             CellInfo cellInfo = new CellInfo();
-            cellInfo.setCellIdLists(cellIdLists);
+            cellInfo.setCellIdList(cellIdList);
             cellInfo.setNetworkId(networkId);
             OofRequestBody oofRequestBody = new OofRequestBody();
             oofRequestBody.setRequestInfo(requestInfo);

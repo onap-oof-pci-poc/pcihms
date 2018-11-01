@@ -20,11 +20,28 @@
 
 package com.wipro.www.pcims.model;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 public class FapService {
 
+    @JsonProperty("alias")
     private String alias;
 
+    @JsonProperty("CellConfig")
     private CellConfig cellConfig;
+
+    public FapService() {
+
+    }
+
+    /**
+     * Parameterized constructor.
+     */
+    public FapService(String alias, CellConfig cellConfig) {
+        super();
+        this.alias = alias;
+        this.cellConfig = cellConfig;
+    }
 
     public String getAlias() {
         return alias;

@@ -42,13 +42,10 @@ public class PolicyDmaapClient {
         try {
             int result = notificationProducer.sendNotification(configuration.getPolicyTopic(), msg);
             log.debug("result: {}", result);
-            if (result == 0) {
-                return true;
-            }
         } catch (GeneralSecurityException | IOException e) {
             log.debug("exception when sending notification to policy", e);
             return false;
         }
-        return false;
+        return true;
     }
 }

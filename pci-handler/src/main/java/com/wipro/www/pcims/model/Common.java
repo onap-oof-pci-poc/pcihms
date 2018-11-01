@@ -20,9 +20,21 @@
 
 package com.wipro.www.pcims.model;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 public class Common {
 
+    @JsonProperty(value = "CellIdentity")
     private String cellIdentity;
+
+    public Common() {
+
+    }
+
+    public Common(String cellIdentity) {
+        super();
+        this.cellIdentity = cellIdentity;
+    }
 
     public String getCellIdentity() {
         return cellIdentity;

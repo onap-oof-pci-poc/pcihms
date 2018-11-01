@@ -24,18 +24,12 @@ import com.wipro.www.pcims.dao.DmaapNotificationsRepository;
 import com.wipro.www.pcims.utils.BeanUtil;
 
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
 import org.slf4j.Logger;
 
 public class WaitState implements PciState {
 
     private static WaitState instance;
-    private Map<Long, String> childStatusUpdate = new HashMap<>();
     private List<String> sdnrNotification = new ArrayList<>();
     private static final Logger log = org.slf4j.LoggerFactory.getLogger(WaitState.class);
 
@@ -53,15 +47,7 @@ public class WaitState implements PciState {
         return instance;
     }
 
-    public synchronized void putChildStatus(Long childThreadId, String status) {
-        childStatusUpdate.put(childThreadId, status);
-    }
-
-    public synchronized String getChildStatus(Long childThreadId) {
-        return childStatusUpdate.get(childThreadId);
-    }
-
-    public synchronized void putSdnrNotification(String notification) {
+    public void putSdnrNotification(String notification) {
         sdnrNotification.add(notification);
         log.debug("sdnrNotification size: {}", sdnrNotification.size());
     }
@@ -69,32 +55,31 @@ public class WaitState implements PciState {
     @Override
     public void stateChange(PciContext pciContext) {
         log.debug("inside state change of wait state");
-        while (childStatusUpdate.isEmpty() && sdnrNotification.isEmpty()) {
-            log.debug("child update queue: {}", childStatusUpdate.size());
-            log.debug("sdnr notif queue: {}", sdnrNotification.size());
-        }
-        if (!childStatusUpdate.isEmpty()) {
-            log.debug("child status update received");
-            Set childThreadId = childStatusUpdate.keySet();
-            Iterator iterate = childThreadId.iterator();
-            while (iterate.hasNext()) {
-                pciContext.setChildThreadId((long) iterate.next());
-                pciContext.setPciState(new ChildStatusUpdateState());
-                pciContext.stateChange(pciContext);
 
-            }
-            childStatusUpdate.clear();
-
+        while (pciContext.getChildStatusUpdate().isEmpty() && !pciContext.getNewNotification().getNewNotif()) {
         }
-        if (!sdnrNotification.isEmpty()) {
-            log.debug("getting notification dmaap_notifications table");
-            DmaapNotificationsRepository dmaapNotificationsRepository = BeanUtil
-                    .getBean(DmaapNotificationsRepository.class);
-            String notification = dmaapNotificationsRepository.getNotificationFromQueue();
+
+        List<String> childStatus = pciContext.getChildStatusUpdate().poll();
+        if (childStatus != null) {
+            Long threadId = Long.parseLong(childStatus.get(0));
+            log.debug("threadId: {}", threadId);
+            log.debug("childStatus: {}", childStatus.get(1));
+            pciContext.setChildThreadId(threadId);
+            pciContext.addChildStatus(threadId, childStatus.get(1));
+            pciContext.setPciState(new ChildStatusUpdateState());
+            pciContext.stateChange(pciContext);
+        }
+
+        DmaapNotificationsRepository dmaapNotificationsRepository = BeanUtil
+                .getBean(DmaapNotificationsRepository.class);
+        String notification = dmaapNotificationsRepository.getNotificationFromQueue();
+        if (notification != null) {
             log.debug("notification from sdnr:{}", notification);
             pciContext.setSdnrNotification(notification);
             pciContext.setPciState(new SdnrNotificationHandlingState());
             pciContext.stateChange(pciContext);
+        } else {
+            pciContext.getNewNotification().setNewNotif(false);
         }
 
     }

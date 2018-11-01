@@ -26,7 +26,9 @@ import com.wipro.www.pcims.restclient.PolicyRestClient;
 import com.wipro.www.pcims.utils.FileIo;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import javax.annotation.PostConstruct;
@@ -62,28 +64,33 @@ public class Application {
     @PostConstruct
     void init() {
         getConfig();
-        // fetchIntialConfigFromPolicy();
-        dmaapClient.initClient();
-        mainThreadComponent.init();
+        fetchIntialConfigFromPolicy();
+        NewNotification newNotification = new NewNotification(false);
+        dmaapClient.initClient(newNotification);
+        mainThreadComponent.init(newNotification);
     }
 
     /**
-     * Gets config from policy.
+     * Gets configuration from policy.
      */
     @SuppressWarnings("unchecked")
     private void fetchIntialConfigFromPolicy() {
         log.debug("fetch initial config from policy");
         String configPolicyResponseJson = PolicyRestClient.fetchConfigFromPolicy();
+        if (configPolicyResponseJson.equals("Post failed")) {
+            log.debug("cannot fetch config from policy");
+            return;
+        }
         ObjectMapper mapper = new ObjectMapper();
-        Map<String, String> configPolicyResponse = new HashMap<>();
+        List<HashMap<String, Object>> configPolicyResponse = new ArrayList<>();
         try {
-            configPolicyResponse = mapper.readValue(configPolicyResponseJson, HashMap.class);
+            configPolicyResponse = mapper.readValue(configPolicyResponseJson, List.class);
         } catch (IOException e) {
             log.debug("exception during parsing response from policy", e);
         }
         String configPolicyJson = null;
         if (configPolicyResponse != null) {
-            configPolicyJson = configPolicyResponse.get("configBody");
+            configPolicyJson = (String) configPolicyResponse.get(0).get("config");
         } else {
             return;
         }
