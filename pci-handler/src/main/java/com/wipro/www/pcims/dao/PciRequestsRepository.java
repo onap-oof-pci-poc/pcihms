@@ -22,14 +22,21 @@ package com.wipro.www.pcims.dao;
 
 import com.wipro.www.pcims.entity.PciRequests;
 
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 
 @Repository
+@Transactional
 public interface PciRequestsRepository extends CrudRepository<PciRequests, String> {
 
     @Query(nativeQuery = true, value = "SELECT child_thread_id FROM pci_requests WHERE transaction_id = ?1")
     public long getChildThreadMapping(String transactionId);
+
+    @Modifying
+    @Query(nativeQuery = true, value = "DELETE FROM pci_requests WHERE child_thread_id = ?1")
+    public void deleteByChildThreadId(Long threadId);
 
 }

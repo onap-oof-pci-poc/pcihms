@@ -93,9 +93,4 @@ public class CellPciPair {
         return true;
     }
 
-    @Override
-    public String toString() {
-        return "CellPciPair [cellId=" + cellId + ", physicalCellId=" + physicalCellId + "]";
-    }
-
 }

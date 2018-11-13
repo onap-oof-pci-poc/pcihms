@@ -20,14 +20,14 @@
 
 package com.wipro.www.pcims.child;
 
-import com.wipro.www.pcims.SdnrNotificationHandlingState;
 import com.wipro.www.pcims.model.FapServiceList;
+import com.wipro.www.pcims.model.ThreadId;
 import com.wipro.www.pcims.restclient.AsyncResponseBody;
-
 import java.util.List;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import org.slf4j.Logger;
+import org.slf4j.MDC;
 
 public class ChildThread implements Runnable {
 
@@ -35,16 +35,23 @@ public class ChildThread implements Runnable {
     private BlockingQueue<FapServiceList> queue = new LinkedBlockingQueue<>();
     static BlockingQueue<AsyncResponseBody> asynchronousResponse = new LinkedBlockingQueue<>();
     private ClusterFormation clusterFormation;
+    private String clusterId;
+    private Graph cluster;
+    private ThreadId threadId;
     FapServiceList fapServiceList = new FapServiceList();
     private static final Logger log = org.slf4j.LoggerFactory.getLogger(ChildThread.class);
 
     /**
      * Constructor with parameters.
      */
-    public ChildThread(BlockingQueue<List<String>> childStatusUpdate, BlockingQueue<FapServiceList> queue) {
+    public ChildThread(BlockingQueue<List<String>> childStatusUpdate, Graph cluster,
+            BlockingQueue<FapServiceList> queue, String clusterId, ThreadId threadId) {
         super();
         this.childStatusUpdate = childStatusUpdate;
         this.queue = queue;
+        this.clusterId = clusterId;
+        this.threadId = threadId;
+        this.cluster = cluster;
     }
 
     /**
@@ -66,7 +73,7 @@ public class ChildThread implements Runnable {
         synchronized (queue) {
             try {
                 queue.put(fapserviceList);
-                notify();
+                queue.notify();
             } catch (InterruptedException e) {
                 log.error(" The Thread is Interrupted", e);
                 Thread.currentThread().interrupt();
@@ -95,8 +102,14 @@ public class ChildThread implements Runnable {
 
     @Override
     public void run() {
+
+        threadId.setChildThreadId(Thread.currentThread().getId());
+        synchronized (threadId) {
+            threadId.notifyAll();
+        }
+
+        MDC.put("logFileName", Thread.currentThread().getName());
         log.debug("Starting child thread");
-        SdnrNotificationHandlingState.addChildThreadMap(Thread.currentThread().getId(), this);
 
         try {
             fapServiceList = queue.take();
@@ -106,11 +119,9 @@ public class ChildThread implements Runnable {
         } catch (InterruptedException e1) {
             log.error("InterruptedException is {}", e1);
             Thread.currentThread().interrupt();
-
         }
-        log.debug("Forming cluster");
+
         clusterFormation = new ClusterFormation(childStatusUpdate, queue);
-        Graph cluster = clusterFormation.clusterForm(fapServiceList);
 
         try {
             String networkId = fapServiceList.getCellConfig().getLte().getRan().getNeighborListInUse()
@@ -120,6 +131,8 @@ public class ChildThread implements Runnable {
             log.error("{}", e);
         }
 
+        log.debug("Child thread :{} {}", Thread.currentThread().getId(), "completed");
+        MDC.remove("logFileName");
     }
 
 }

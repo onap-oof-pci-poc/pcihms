@@ -25,8 +25,11 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.wipro.www.pcims.ConfigPolicy;
 import com.wipro.www.pcims.Configuration;
+import com.wipro.www.pcims.dao.CellInfoRepository;
+import com.wipro.www.pcims.dao.ClusterDetailsRepository;
 import com.wipro.www.pcims.dao.PciRequestsRepository;
 import com.wipro.www.pcims.dmaap.PolicyDmaapClient;
+import com.wipro.www.pcims.entity.CellInfo;
 import com.wipro.www.pcims.entity.PciRequests;
 import com.wipro.www.pcims.model.Aai;
 import com.wipro.www.pcims.model.CellConfig;
@@ -54,6 +57,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.BlockingQueue;
@@ -120,6 +124,17 @@ public class StateOof {
                 networkId, optimizers);
         log.debug("Synchronous Response {}", oofResponse);
 
+        List<String> childStatus = new ArrayList<>();
+        childStatus.add(Long.toString(Thread.currentThread().getId()));
+        childStatus.add("triggeredOof");
+        try {
+            childStatusUpdate.put(childStatus);
+        } catch (InterruptedException e1) {
+            log.debug("Interrupted execption {}", e1);
+            Thread.currentThread().interrupt();
+
+        }
+
         // Store Request details in Database
 
         PciRequests pciRequest = new PciRequests();
@@ -144,15 +159,31 @@ public class StateOof {
 
         sendToPolicy(networkId);
 
+        childStatus = new ArrayList<>();
+        childStatus.add(Long.toString(Thread.currentThread().getId()));
+        childStatus.add("success");
+        try {
+            childStatusUpdate.put(childStatus);
+        } catch (InterruptedException e) {
+            log.debug("InterruptedException {}", e);
+            Thread.currentThread().interrupt();
+
+        }
+
         synchronized (queue) {
 
             try {
                 while (queue.isEmpty()) {
-                    wait();
+                    queue.wait();
                 }
             } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
-                log.debug("Exception while waiting for buffered notifications {}", e);
+                // cleanup database
+                log.debug("cleaning up database and killing child thread");
+                Long threadId = Thread.currentThread().getId();
+                ClusterDetailsRepository clusterDetailsRepository = BeanUtil.getBean(ClusterDetailsRepository.class);
+                clusterDetailsRepository.deleteByChildThreadId(threadId);
+                pciRequestsRepository.deleteByChildThreadId(threadId);
+                return;
             }
 
         }
@@ -166,18 +197,12 @@ public class StateOof {
      */
     private void sendToPolicy(String networkId) {
 
-        List<String> childStatus = new ArrayList<>();
-        childStatus.add(Long.toString(Thread.currentThread().getId()));
-        childStatus.add("Triggered Oof");
-        try {
-            childStatusUpdate.put(childStatus);
-        } catch (InterruptedException e1) {
-            log.debug("Interrupted execption {}", e1);
-            Thread.currentThread().interrupt();
-
-        }
         AsyncResponseBody async = null;
         async = ChildThread.asynchronousResponse.poll();
+
+        if (log.isDebugEnabled()) {
+            log.debug(async.toString());
+        }
 
         List<Solution> solutions;
         solutions = async.getSolutions();
@@ -193,18 +218,9 @@ public class StateOof {
             PolicyDmaapClient policy = new PolicyDmaapClient();
             boolean status = policy.sendNotificationToPolicy(notification);
             log.debug("sent Message: {}", status);
+            List<String> childStatus = new ArrayList<>();
             if (status) {
-                childStatus = new ArrayList<>();
-                childStatus.add(Long.toString(Thread.currentThread().getId()));
-                childStatus.add("Success");
-                try {
-                    childStatusUpdate.put(childStatus);
-                } catch (InterruptedException e) {
-                    log.debug("InterruptedException {}", e);
-                    Thread.currentThread().interrupt();
-
-                }
-
+                log.debug("Message sent to policy");
             } else {
                 log.debug("Sending notification to policy failed");
             }
@@ -252,7 +268,16 @@ public class StateOof {
             for (PciSolution pciSolution : pciSolutions) {
                 String cellId = pciSolution.getCellId();
                 int pci = pciSolution.getPci();
-                String pnfName = SdnrRestClient.getPnfName(cellId);
+
+                String pnfName = "";
+                CellInfoRepository cellInfoRepository = BeanUtil.getBean(CellInfoRepository.class);
+                Optional<CellInfo> cellInfo = cellInfoRepository.findById(cellId);
+                if (cellInfo.isPresent()) {
+                    pnfName = cellInfo.get().getPnfName();
+                } else {
+                    pnfName = SdnrRestClient.getPnfName(cellId);
+                    cellInfoRepository.save(new CellInfo(cellId, pnfName));
+                }
                 if (pnfs.containsKey(pnfName)) {
                     pnfs.get(pnfName).add(new CellPciPair(cellId, pci));
                 } else {

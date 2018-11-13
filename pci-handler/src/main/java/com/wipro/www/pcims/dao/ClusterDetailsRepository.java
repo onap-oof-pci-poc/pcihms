@@ -22,11 +22,15 @@ package com.wipro.www.pcims.dao;
 
 import com.wipro.www.pcims.entity.ClusterDetails;
 import java.util.List;
+
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 
 @Repository
+@Transactional
 public interface ClusterDetailsRepository extends CrudRepository<ClusterDetails, String> {
 
     @Query(nativeQuery = true, value = "UPDATE CLUSTER_DETAILS SET clusterInfo=?1  WHERE clusterId = ?2")
@@ -40,5 +44,13 @@ public interface ClusterDetailsRepository extends CrudRepository<ClusterDetails,
 
     @Query(nativeQuery = true, value = "SELECT cluster_id FROM cluster_details WHERE child_thread_id = ?1")
     public String getClusterIdForChildThread(long childThreadId);
+
+    @Modifying
+    @Query(nativeQuery = true, value = "DELETE FROM cluster_details WHERE child_thread_id = ?1")
+    public void deleteByChildThreadId(Long threadId);
+
+    @Modifying
+    @Query(nativeQuery = true, value = "UPDATE cluster_details SET child_thread_id = ?2 WHERE cluster_id = ?1")
+    public void updateThreadId(String clusterId, Long threadId);
 
 }

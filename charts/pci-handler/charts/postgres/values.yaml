@@ -22,7 +22,7 @@ global: # global defaults
 
 
 # application image
-image: postgres:latest
+image: postgres:10
 pullPolicy: Always
 initImage: coe:5000/postgres-init:1.0
 

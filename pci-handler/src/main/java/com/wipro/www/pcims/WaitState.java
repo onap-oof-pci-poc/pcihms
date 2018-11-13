@@ -80,6 +80,9 @@ public class WaitState implements PciState {
             pciContext.stateChange(pciContext);
         } else {
             pciContext.getNewNotification().setNewNotif(false);
+            log.debug("setting new notification to false");
+            pciContext.setPciState(this);
+            pciContext.stateChange(pciContext);
         }
 
     }

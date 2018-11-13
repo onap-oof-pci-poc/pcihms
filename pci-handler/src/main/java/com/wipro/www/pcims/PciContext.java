@@ -114,4 +114,9 @@ public class PciContext implements PciState {
         this.newNotification = newNotification;
     }
 
+    public void deleteChildStatus() {
+        this.childStatus.remove(childThreadId);
+
+    }
+
 }

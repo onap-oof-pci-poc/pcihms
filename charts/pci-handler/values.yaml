@@ -24,7 +24,7 @@ subChartsOnly:
 
 # application image
 repository: coe:5000
-image: pci-handler:1.0
+image: pci-handler:1.1
 pullPolicy: Always
   
 # flag to enable debugging - application support required

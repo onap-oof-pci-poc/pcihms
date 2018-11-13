@@ -20,8 +20,9 @@ spec:
       initContainers:
       - name: {{ include "common.name" . }}-db-init-scripts
         command:
-        - cp 
-        - /tmp/createdb.sql
+        - cp
+        - '-a'
+        - /tmp/.
         - /docker-entrypoint-initdb.d
         image: "{{ .Values.initImage }}"
         imagePullPolicy: {{ .Values.global.pullPolicy | default .Values.pullPolicy }}
@@ -52,8 +53,10 @@ spec:
               secretKeyRef:
                 name: {{ template "common.fullname" . }}
                 key: db-password
+          - name: PGDATA
+            value: /var/lib/postgresql/data/pgdata
         volumeMounts:
-        - mountPath: /var/lib/postgresql
+        - mountPath: /var/lib/postgresql/data/pgdata
           name: db-data
         - mountPath: /etc/localtime
           name: localtime
@@ -72,12 +75,8 @@ spec:
       {{- end }}
       volumes:
       - name: db-data
-      {{- if .Values.persistence.enabled }}
         persistentVolumeClaim:
           claimName: {{ include "common.fullname" . }}
-      {{- else }}
-        emptyDir: {}
-      {{- end }}
       - name: localtime
         hostPath:
           path: /etc/localtime

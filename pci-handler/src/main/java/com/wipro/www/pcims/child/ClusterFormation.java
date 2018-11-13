@@ -27,9 +27,6 @@ import com.wipro.www.pcims.entity.ClusterDetails;
 
 import com.wipro.www.pcims.model.CellPciPair;
 import com.wipro.www.pcims.model.FapServiceList;
-import com.wipro.www.pcims.model.LteNeighborListInUseLteCell;
-import com.wipro.www.pcims.model.Response;
-import com.wipro.www.pcims.restclient.SdnrRestClient;
 import com.wipro.www.pcims.utils.BeanUtil;
 import java.sql.Timestamp;
 import java.util.ArrayList;
@@ -39,7 +36,6 @@ import java.util.Properties;
 import java.util.UUID;
 import java.util.concurrent.BlockingQueue;
 
-import org.json.JSONArray;
 import org.json.JSONObject;
 import org.slf4j.Logger;
 
@@ -70,81 +66,6 @@ public class ClusterFormation {
         this.cluster = new Graph();
         this.detect = new Detection();
         this.clusterModification = new ClusterModification();
-    }
-
-    /**
-     * Returns a new Cluster for a given notification.
-     */
-    public Graph clusterForm(FapServiceList fapser) {
-
-        log.debug("cluster formation started");
-        int phycellId = fapser.getX0005b9Lte().getPhyCellIdInUse();
-        String cellId = fapser.getCellConfig().getLte().getRan().getCellIdentity();
-        CellPciPair val = new CellPciPair();
-        val.setCellId(cellId);
-        val.setPhysicalCellId(phycellId);
-        List<LteNeighborListInUseLteCell> neighbourlist;
-        neighbourlist = fapser.getCellConfig().getLte().getRan().getNeighborListInUse()
-                .getLteNeighborListInUseLteCell();
-        log.debug("Neighbor list size: {}", neighbourlist.size());
-
-        for (int i = 0; i < neighbourlist.size(); i++) {
-
-            String cell = neighbourlist.get(i).getAlias();
-            int phy = neighbourlist.get(i).getPhyCellId();
-            log.debug("cellID: {}", cell);
-            log.debug("PCI: {}", phy);
-            CellPciPair val1 = new CellPciPair();
-            val1.setCellId(cell);
-            val1.setPhysicalCellId(phy);
-            log.debug(val1.toString());
-            cluster.addEdge(val, val1);
-            log.debug("cluster: {}", cluster.toString());
-            String response = SdnrRestClient.getNbrList(neighbourlist.get(i).getAlias());
-            log.debug("response: {}", response);
-
-            ArrayList<Response> sdnrResponse = new ArrayList<>();
-            JSONArray responseList = new JSONArray(response);
-            for (int j = 0; j < responseList.length(); j++) {
-                JSONObject resp = (JSONObject) responseList.get(j);
-                Response responseObj = new Response();
-                responseObj.setCellId(resp.getString("cellId"));
-                responseObj.setPci(resp.getInt("pci"));
-                sdnrResponse.add(responseObj);
-            }
-
-            log.debug("responselist :{}", sdnrResponse);
-
-            for (int k = 0; k < sdnrResponse.size(); k++) {
-                String cid = sdnrResponse.get(k).getCellId();
-                int pci = sdnrResponse.get(k).getPci();
-                CellPciPair val3 = new CellPciPair();
-                val3.setCellId(cid);
-                val3.setPhysicalCellId(pci);
-
-                cluster.addEdge(val1, val3);
-                log.debug("final cluster: {}", cluster);
-            }
-
-        }
-
-        Map<CellPciPair, ArrayList<CellPciPair>> cellPciNeighbourMap = cluster.getCellPciNeighbourMap();
-        JSONObject cellPciNeighbourJson = new JSONObject(cellPciNeighbourMap);
-        String cellPciNeighbourString = cellPciNeighbourJson.toString();
-        log.debug("cluster hahsmap to string : {}", cellPciNeighbourString);
-        UUID clusterId = UUID.randomUUID();
-        cluster.setGraphId(clusterId);
-
-        details.setClusterId(clusterId.toString());
-        details.setClusterInfo(cellPciNeighbourString);
-
-        details.setChildThreadId(Thread.currentThread().getId());
-
-        ClusterDetailsRepository clusterDetailsRepository = BeanUtil.getBean(ClusterDetailsRepository.class);
-        clusterDetailsRepository.save(details);
-
-        return cluster;
-
     }
 
     /**
