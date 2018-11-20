@@ -214,7 +214,7 @@ public class StateOof {
             List<CellPciPair> cellPciPairs = entry.getValue();
 
             String notification = getNotificationString(pnfName, cellPciPairs, networkId);
-
+            log.debug("Policy Notification: {}", notification);
             PolicyDmaapClient policy = new PolicyDmaapClient();
             boolean status = policy.sendNotificationToPolicy(notification);
             log.debug("sent Message: {}", status);
@@ -240,15 +240,20 @@ public class StateOof {
         }
 
         Payload payload = new Payload(configurations);
-
+        ObjectMapper mapper = new ObjectMapper();
+        String payloadString = "";
+        try {
+            payloadString = mapper.writeValueAsString(payload);
+        } catch (JsonProcessingException e) {
+            log.debug("JSON processing exception: {}", e);
+        }
         PolicyNotification policyNotification = new PolicyNotification();
         ConfigPolicy configPolicy = ConfigPolicy.getInstance();
         String closedLoopControlName = (String) configPolicy.getConfig().get("PCI_MODCONFIG_POLICY_NAME");
         policyNotification.setClosedLoopControlName(closedLoopControlName);
-        policyNotification.setPayload(payload);
+        policyNotification.setPayload(payloadString);
         policyNotification.setAai(new Aai());
 
-        ObjectMapper mapper = new ObjectMapper();
         mapper.setSerializationInclusion(Include.NON_NULL);
         String notification = "";
         try {

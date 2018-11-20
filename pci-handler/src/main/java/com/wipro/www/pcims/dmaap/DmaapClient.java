@@ -29,12 +29,15 @@ import com.att.nsa.cambria.client.CambriaConsumer;
 import com.att.nsa.cambria.client.CambriaTopicManager;
 import com.wipro.www.pcims.Configuration;
 import com.wipro.www.pcims.NewNotification;
+import com.wipro.www.pcims.Topic;
 import com.wipro.www.pcims.dao.DmaapNotificationsRepository;
 import com.wipro.www.pcims.entity.DmaapNotifications;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.security.GeneralSecurityException;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -53,7 +56,11 @@ public class DmaapClient {
     private static Logger log = LoggerFactory.getLogger(DmaapClient.class);
     private static final String CONSUMER = "CONSUMER";
     private static final String PRODUCER = "PRODUCER";
+    private static final String DESCRIPTION = "api keys for OOF PCI use case";
+    private static final int PARTITION_COUNT = 1;
+    private static final int REPLICATION_COUNT = 1;
     private NewNotification newNotification;
+    private CambriaTopicManager topicManager;
 
     public class NotificationCallback {
         DmaapClient dmaapClient;
@@ -73,8 +80,6 @@ public class DmaapClient {
                 log.debug(dmaapNotification.toString());
             }
             dmaapNotificationsRepository.save(dmaapNotification);
-            // WaitState waitState = WaitState.getInstance();
-            // waitState.putSdnrNotification("notification in queue");
             newNotification.setNewNotif(true);
         }
     }
@@ -89,51 +94,69 @@ public class DmaapClient {
             log.debug(configuration.toString());
         }
         this.newNotification = newNotification;
-        createSdnrTopic();
-        createPolicyTopic();
-        subscribeToPolicyTopic();
-        subscribeToSdnrTopic();
-        subscribeSdnrToSdnrTopic();
-        subscribePolicyToPolicyTopic();
+
+        createAndConfigureTopics();
         startClient();
     }
 
-    private void subscribePolicyToPolicyTopic() {
-        subscribeToTopic(configuration.getServers(), configuration.getPolicyTopic(), configuration.getPolicyApiKey(),
-                CONSUMER);
-    }
-
-    private void createPolicyTopic() {
-        String topicDescription = "PCI change notification topic";
-        createTopic(configuration.getPolicyTopic(), topicDescription, 1, 1, configuration.getManagerApiKey(),
-                configuration.getManagerSecretKey());
-
-    }
-
-    private void createSdnrTopic() {
-
-        String topicDescription = "Neighbor list change notification topic";
-        createTopic(configuration.getSdnrTopic(), topicDescription, 1, 1, configuration.getManagerApiKey(),
-                configuration.getManagerSecretKey());
-
-    }
-
-    private void createTopic(String topicName, String topicDescription, int partitionCount, int replicationCount,
-            String managerApiKey, String managerSecretKey) {
-
-        CambriaTopicManager topicManager = null;
+    /**
+     * create and configures topics.
+     */
+    private void createAndConfigureTopics() {
 
         try {
             topicManager = buildCambriaClient(new TopicManagerBuilder().usingHosts(configuration.getServers())
-                    .authenticatedBy(managerApiKey, managerSecretKey));
-            topicManager.createTopic(topicName, topicDescription, partitionCount, replicationCount);
-            topicManager.close();
-        } catch (GeneralSecurityException | HttpException | IOException e) {
+                    .authenticatedBy(configuration.getManagerApiKey(), configuration.getManagerSecretKey()));
+        } catch (GeneralSecurityException | IOException e) {
             log.debug("exception during creating topic", e);
         }
+        List<Topic> topics = configuration.getTopics();
+
+        for (Topic topic : topics) {
+            Set<String> topicsInDmaap = getAllTopicsFromDmaap();
+
+            createTopic(topic, topicsInDmaap);
+            subscribeToTopic(configuration.getServers(), topic.getName(), topic.getProducer(), PRODUCER);
+            subscribeToTopic(configuration.getServers(), topic.getName(), topic.getConsumer(), CONSUMER);
+
+        }
+
+        topicManager.close();
 
     }
 
+    /**
+     * create topic.
+     */
+    private void createTopic(Topic topic, Set<String> topicsInDmaap) {
+        if (topicsInDmaap.contains(topic.getName())) {
+            log.debug("topic exists in dmaap");
+        } else {
+            try {
+                topicManager.createTopic(topic.getName(), DESCRIPTION, PARTITION_COUNT, REPLICATION_COUNT);
+            } catch (HttpException | IOException e) {
+                log.debug("error while creating topic: {}", e);
+            }
+        }
+    }
+
+    /**
+     * get all topics from dmaap.
+     */
+    private Set<String> getAllTopicsFromDmaap() {
+        Set<String> topics = new HashSet<>();
+        try {
+            topics = topicManager.getTopics();
+        } catch (IOException e) {
+            log.debug("IOException while fetching topics");
+        }
+        return topics;
+
+    }
+
+    /**
+     * start dmaap client.
+     */
     private synchronized void startClient() {
 
         ScheduledExecutorService executorPool;
@@ -160,27 +183,9 @@ public class DmaapClient {
 
     }
 
-    private void subscribeToSdnrTopic() {
-        log.debug("subscribing to SDNR topic");
-        // subscribe to SDNR topic
-        subscribeToTopic(configuration.getServers(), configuration.getSdnrTopic(), configuration.getPcimsApiKey(),
-                CONSUMER);
-    }
-
-    private void subscribeToPolicyTopic() {
-        log.debug("subscribing to policy topic");
-        // subscribe to policy topic
-        subscribeToTopic(configuration.getServers(), configuration.getPolicyTopic(), configuration.getPcimsApiKey(),
-                PRODUCER);
-
-    }
-
-    private void subscribeSdnrToSdnrTopic() {
-
-        subscribeToTopic(configuration.getServers(), configuration.getSdnrTopic(), configuration.getSdnrApiKey(),
-                PRODUCER);
-    }
-
+    /**
+     * subscribe to topic.
+     */
     private void subscribeToTopic(List<String> servers, String topicName, String subscriberApiKey,
             String subscriberType) {
         CambriaTopicManager topicManager = null;

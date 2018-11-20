@@ -61,7 +61,12 @@ public class OofRestClient {
             requestInfo.setNumSolutions(numSolutions);
             requestInfo.setOptimizers(optimizers);
             ConfigPolicy config = ConfigPolicy.getInstance();
-            int timeout = (int) config.getConfig().get("PCI_NEIGHBOR_CHANGE_CLUSTER_TIMEOUT_IN_SECS");
+            int timeout = 60;
+            try {
+                timeout = (int) config.getConfig().get("PCI_NEIGHBOR_CHANGE_CLUSTER_TIMEOUT_IN_SECS");
+            } catch (NullPointerException e) {
+                log.debug("No config policy available. Using default timeout 60 sec");
+            }
             requestInfo.setTimeout(timeout);
             CellInfo cellInfo = new CellInfo();
             cellInfo.setCellIdList(cellIdList);

@@ -25,15 +25,14 @@ import java.util.List;
 public class Configuration {
 
     private static Configuration instance = null;
-    private String policyTopic;
+    private List<Topic> topics;
     private String sdnrTopic;
+    private String policyTopic;
     private List<String> servers;
     private String managerApiKey;
     private String managerSecretKey;
     private String pcimsApiKey;
     private String pcimsSecretKey;
-    private String sdnrApiKey;
-    private String policyApiKey;
     private String cg;
     private String cid;
     private int pollingInterval;
@@ -74,35 +73,6 @@ public class Configuration {
         return instance;
     }
 
-    @Override
-    public String toString() {
-        return "Configuration [policyTopic=" + policyTopic + ", sdnrTopic=" + sdnrTopic + ", servers=" + servers
-                + ", managerApiKey=" + managerApiKey + ", managerSecretKey=" + managerSecretKey + ", pcimsApiKey="
-                + pcimsApiKey + ", pcimsSecretKey=" + pcimsSecretKey + ", sdnrApiKey=" + sdnrApiKey + ", policyApiKey="
-                + policyApiKey + ", cg=" + cg + ", cid=" + cid + ", pollingInterval=" + pollingInterval
-                + ", pollingTimeout=" + pollingTimeout + ", minCollision=" + minCollision + ", minConfusion="
-                + minConfusion + ", sdnrService=" + sdnrService + ", policyService=" + policyService + ", oofService="
-                + oofService + ", sourceId=" + sourceId + ", policyName=" + policyName + ", configName=" + configName
-                + ", callbackUrl=" + callbackUrl + ", optimizers=" + optimizers + ", numSolutions=" + numSolutions
-                + ", bufferTime=" + bufferTime + ", maximumClusters=" + maximumClusters + "]";
-    }
-
-    public String getPolicyTopic() {
-        return policyTopic;
-    }
-
-    public void setPolicyTopic(String policyTopic) {
-        this.policyTopic = policyTopic;
-    }
-
-    public String getSdnrTopic() {
-        return sdnrTopic;
-    }
-
-    public void setSdnrTopic(String sdnrTopic) {
-        this.sdnrTopic = sdnrTopic;
-    }
-
     public List<String> getServers() {
         return servers;
     }
@@ -141,22 +111,6 @@ public class Configuration {
 
     public void setPcimsSecretKey(String pcimsSecretKey) {
         this.pcimsSecretKey = pcimsSecretKey;
-    }
-
-    public String getSdnrApiKey() {
-        return sdnrApiKey;
-    }
-
-    public void setSdnrApiKey(String sdnrApiKey) {
-        this.sdnrApiKey = sdnrApiKey;
-    }
-
-    public String getPolicyApiKey() {
-        return policyApiKey;
-    }
-
-    public void setPolicyApiKey(String policyApiKey) {
-        this.policyApiKey = policyApiKey;
     }
 
     public String getCg() {
@@ -285,6 +239,43 @@ public class Configuration {
 
     public void setBufferTime(int bufferTime) {
         this.bufferTime = bufferTime;
+    }
+
+    public List<Topic> getTopics() {
+        return topics;
+    }
+
+    public void setTopics(List<Topic> topics) {
+        this.topics = topics;
+    }
+
+    public String getSdnrTopic() {
+        return sdnrTopic;
+    }
+
+    public void setSdnrTopic(String sdnrTopic) {
+        this.sdnrTopic = sdnrTopic;
+    }
+
+    public String getPolicyTopic() {
+        return policyTopic;
+    }
+
+    public void setPolicyTopic(String policyTopic) {
+        this.policyTopic = policyTopic;
+    }
+
+    @Override
+    public String toString() {
+        return "Configuration [topics=" + topics + ", sdnrTopic=" + sdnrTopic + ", policyTopic=" + policyTopic
+                + ", servers=" + servers + ", managerApiKey=" + managerApiKey + ", managerSecretKey=" + managerSecretKey
+                + ", pcimsApiKey=" + pcimsApiKey + ", pcimsSecretKey=" + pcimsSecretKey + ", cg=" + cg + ", cid=" + cid
+                + ", pollingInterval=" + pollingInterval + ", pollingTimeout=" + pollingTimeout + ", minCollision="
+                + minCollision + ", minConfusion=" + minConfusion + ", sdnrService=" + sdnrService + ", policyService="
+                + policyService + ", oofService=" + oofService + ", sourceId=" + sourceId + ", policyName=" + policyName
+                + ", configName=" + configName + ", callbackUrl=" + callbackUrl + ", optimizers=" + optimizers
+                + ", numSolutions=" + numSolutions + ", bufferTime=" + bufferTime + ", maximumClusters="
+                + maximumClusters + "]";
     }
 
 }

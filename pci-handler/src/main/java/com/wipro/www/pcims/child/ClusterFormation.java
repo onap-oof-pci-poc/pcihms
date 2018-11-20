@@ -25,7 +25,6 @@ import com.wipro.www.pcims.Configuration;
 import com.wipro.www.pcims.dao.ClusterDetailsRepository;
 import com.wipro.www.pcims.entity.ClusterDetails;
 
-import com.wipro.www.pcims.model.CellPciPair;
 import com.wipro.www.pcims.model.FapServiceList;
 import com.wipro.www.pcims.utils.BeanUtil;
 import java.sql.Timestamp;
@@ -36,7 +35,6 @@ import java.util.Properties;
 import java.util.UUID;
 import java.util.concurrent.BlockingQueue;
 
-import org.json.JSONObject;
 import org.slf4j.Logger;
 
 public class ClusterFormation {
@@ -44,14 +42,13 @@ public class ClusterFormation {
     private static final Logger log = org.slf4j.LoggerFactory.getLogger(ClusterFormation.class);
     private BlockingQueue<List<String>> childStatusUpdate;
     private BlockingQueue<FapServiceList> queue;
-    private Graph cluster;
     private ClusterModification clusterModification;
     private Detection detect;
     Properties confProp;
     ClusterDetails details = new ClusterDetails();
 
     public ClusterFormation() {
-
+        this.detect = new Detection();
     }
 
     /**
@@ -63,7 +60,6 @@ public class ClusterFormation {
         super();
         this.childStatusUpdate = childStatusUpdate;
         this.queue = queue;
-        this.cluster = new Graph();
         this.detect = new Detection();
         this.clusterModification = new ClusterModification();
     }
@@ -113,11 +109,15 @@ public class ClusterFormation {
         Map<String, ArrayList<Integer>> modifiedCollisionConfusion = null;
 
         FapServiceList newNotification;
-        Graph modifiedCluster = null;
         Configuration configuration = Configuration.getInstance();
 
         ConfigPolicy config = ConfigPolicy.getInstance();
-        int timer = (int) config.getConfig().get("PCI_NEIGHBOR_CHANGE_CLUSTER_TIMEOUT_IN_SECS");
+        int timer = 60;
+        try {
+            timer = (int) config.getConfig().get("PCI_NEIGHBOR_CHANGE_CLUSTER_TIMEOUT_IN_SECS");
+        } catch (NullPointerException e) {
+            log.debug("Policy config not available. Using default timeout - 60 seconds");
+        }
 
         Timestamp currentTime = new Timestamp(System.currentTimeMillis());
         log.debug("Current Time {}", currentTime);
@@ -144,12 +144,10 @@ public class ClusterFormation {
                 newNotification = queue.poll();
                 networkId = newNotification.getCellConfig().getLte().getRan().getNeighborListInUse()
                         .getLteNeighborListInUseLteCell().get(0).getPlmnid();
-                modifiedCluster = clusterModification.clustermod(cluster, newNotification);
+                cluster = clusterModification.clustermod(cluster, newNotification);
 
                 // update cluster in DB
-                Map<CellPciPair, ArrayList<CellPciPair>> cellPciNeighbourMap = modifiedCluster.getCellPciNeighbourMap();
-                JSONObject cellPciNeighbourJson = new JSONObject(cellPciNeighbourMap);
-                String cellPciNeighbourString = cellPciNeighbourJson.toString();
+                String cellPciNeighbourString = cluster.getPciNeighbourJson();
                 UUID clusterId = cluster.getGraphId();
                 ClusterDetailsRepository clusterDetailsRepository = BeanUtil.getBean(ClusterDetailsRepository.class);
                 clusterDetailsRepository.updateCluster(cellPciNeighbourString, clusterId.toString());
@@ -159,23 +157,21 @@ public class ClusterFormation {
         }
         if (flag != 0) {
 
-            modifiedCollisionConfusion = detect.detectCollisionConfusion(modifiedCluster);
+            modifiedCollisionConfusion = detect.detectCollisionConfusion(cluster);
             int collisionSum = 0;
             int confusionSum = 0;
             for (Map.Entry<String, ArrayList<Integer>> entry1 : modifiedCollisionConfusion.entrySet()) {
 
                 ArrayList<Integer> arr;
                 arr = entry1.getValue();
-                collisionSum = collisionSum + arr.get(0);
-                confusionSum = confusionSum + arr.get(1);
+                if (!arr.isEmpty()) {
+                    collisionSum = collisionSum + arr.get(0);
+                    confusionSum = confusionSum + arr.get(1);
+                }
             }
-            if ((collisionSum >= configuration.getMinCollision())
-                    && (confusionSum >= configuration.getMinConfusion())) {
-                oof.triggerOof(modifiedCollisionConfusion, modifiedCluster, networkId);
-
-            }
+            oof.triggerOof(modifiedCollisionConfusion, cluster, networkId);
         } else {
-            oof.triggerOof(collisionConfusionResult, modifiedCluster, networkId);
+            oof.triggerOof(collisionConfusionResult, cluster, networkId);
 
         }
 

@@ -28,7 +28,6 @@ import com.wipro.www.pcims.dao.CellInfoRepository;
 import com.wipro.www.pcims.dao.ClusterDetailsRepository;
 import com.wipro.www.pcims.entity.CellInfo;
 import com.wipro.www.pcims.entity.ClusterDetails;
-import com.wipro.www.pcims.model.CellNeighbourList;
 import com.wipro.www.pcims.model.CellPciPair;
 import com.wipro.www.pcims.model.FapServiceList;
 import com.wipro.www.pcims.model.LteNeighborListInUseLteCell;
@@ -38,7 +37,6 @@ import com.wipro.www.pcims.model.ThreadId;
 import com.wipro.www.pcims.restclient.SdnrRestClient;
 import com.wipro.www.pcims.utils.BeanUtil;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -50,7 +48,6 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 
 import org.json.JSONArray;
-import org.json.JSONException;
 import org.json.JSONObject;
 import org.slf4j.Logger;
 
@@ -108,6 +105,7 @@ public class SdnrNotificationHandlingState implements PciState {
                     }
                     saveCluster(cluster, clusterId, threadId.getChildThreadId());
                     addChildThreadMap(threadId.getChildThreadId(), child);
+                    pciContext.addChildStatus(threadId.getChildThreadId(), "processingNotifications");
 
                 }
 
@@ -133,8 +131,7 @@ public class SdnrNotificationHandlingState implements PciState {
 
     private String saveCluster(Graph cluster, UUID clusterId, Long threadId) {
 
-        Map<CellPciPair, ArrayList<CellPciPair>> cellPciNeighbourMap = cluster.getCellPciNeighbourMap();
-        String cellPciNeighbourString = getPciNeighbourJson(cellPciNeighbourMap);
+        String cellPciNeighbourString = cluster.getPciNeighbourJson();
 
         log.debug("cluster hahsmap to string : {}", cellPciNeighbourString);
         cluster.setGraphId(clusterId);
@@ -148,26 +145,6 @@ public class SdnrNotificationHandlingState implements PciState {
         clusterDetailsRepository.save(details);
 
         return clusterId.toString();
-    }
-
-    private String getPciNeighbourJson(Map<CellPciPair, ArrayList<CellPciPair>> cellPciNeighbourMap) {
-
-        List<CellNeighbourList> cells = new ArrayList<>();
-
-        for (CellPciPair key : cellPciNeighbourMap.keySet()) {
-            JSONArray neighbours = new JSONArray(cellPciNeighbourMap.get(key));
-            CellNeighbourList cell = new CellNeighbourList(key.getCellId(), key.getPhysicalCellId(),
-                    neighbours.toString());
-            cells.add(cell);
-        }
-        ObjectMapper mapper = new ObjectMapper();
-        String pciNeighbourJson = "";
-        try {
-            pciNeighbourJson = mapper.writeValueAsString(cells);
-        } catch (JsonProcessingException e) {
-            log.debug("Error while processing json: {}", e);
-        }
-        return pciNeighbourJson;
     }
 
     private Graph createCluster(FapServiceList fapService) {
@@ -260,7 +237,8 @@ public class SdnrNotificationHandlingState implements PciState {
         Map<CellPciPair, ArrayList<CellPciPair>> cellPciNeighbourMap = new HashMap<>();
 
         for (ClusterDetails clusterDetail : clusterDetails) {
-            cellPciNeighbourMap = getCellPciNeighbourMap(clusterDetail.getClusterInfo());
+            Graph cluster = new Graph(clusterDetail.getClusterInfo());
+            cellPciNeighbourMap = cluster.getCellPciNeighbourMap();
             Set<CellPciPair> keys = cellPciNeighbourMap.keySet();
             Iterator<CellPciPair> traverse = keys.iterator();
             while (traverse.hasNext()) {
@@ -273,28 +251,6 @@ public class SdnrNotificationHandlingState implements PciState {
         }
 
         return null;
-    }
-
-    @SuppressWarnings("unchecked")
-    private Map<CellPciPair, ArrayList<CellPciPair>> getCellPciNeighbourMap(String clusterInfo) {
-        JSONArray cells = new JSONArray(clusterInfo);
-
-        Map<CellPciPair, ArrayList<CellPciPair>> cellMap = new HashMap<>();
-        for (int i = 0; i < cells.length(); i++) {
-            JSONObject cell = (JSONObject) cells.get(i);
-            CellPciPair cellPciPair = new CellPciPair(cell.getString("cellId"), cell.getInt("physicalCellId"));
-            ObjectMapper mapper = new ObjectMapper();
-            ArrayList<CellPciPair> neighbours = new ArrayList<>();
-            try {
-                neighbours = mapper.readValue(cell.getString("neighbours"), ArrayList.class);
-            } catch (JSONException | IOException e) {
-                log.debug("Error parsing json: {}", e);
-            }
-            cellMap.put(cellPciPair, neighbours);
-
-        }
-
-        return cellMap;
     }
 
     private List<ClusterDetails> getAllClusters() {

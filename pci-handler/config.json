@@ -1,13 +1,33 @@
 {
-	"policyTopic": "DCAE_CL_OUTPUT",
+	"topics":[
+		{	
+			"name": "PCI-NOTIF-TOPIC-NGHBR-LIST-CHANGE-INFO",
+			"producer": "SDNR_API_KEY",
+			"consumer": "PCIMS_API_KEY"
+		},
+		{	
+			"name": "DCAE_CL_OUTPUT",
+			"producer": "PCIMS_API_KEY",
+			"consumer": "POLICY_API_KEY"
+		},
+		{	
+			"name": "SDNR-CL",
+			"producer": "POLICY_API_KEY",
+			"consumer": "SDNR_API_KEY"
+		},
+		{	
+			"name": "SDNR-CL-RSP",
+			"producer": "SDNR_API_KEY",
+			"consumer": "POLICY_API_KEY"
+		}
+	],
 	"sdnrTopic": "PCI-NOTIF-TOPIC-NGHBR-LIST-CHANGE-INFO",
+	"policyTopic": "DCAE_CL_OUTPUT",
 	"servers": ["DMAAP_SERVER:3904"],
 	"managerApiKey": "MANAGER_API_KEY",
 	"managerSecretKey": "MANAGER_SECRET_KEY",
 	"pcimsApiKey": "PCIMS_API_KEY",
 	"pcimsSecretKey": "PCIMS_SECRET_KEY",
-	"sdnrApiKey": "SDNR_API_KEY",
-	"policyApiKey": "POLICY_API_KEY",
 	"cg": "pcims-cg",
 	"cid": "pcims-cid",
 	"pollingTimeout": "60",

@@ -20,14 +20,23 @@
 
 package com.wipro.www.pcims.child;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.wipro.www.pcims.model.CellNeighbourList;
 import com.wipro.www.pcims.model.CellPciPair;
 
+import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
 import java.util.concurrent.ConcurrentHashMap;
 
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 import org.slf4j.Logger;
 
 public class Graph {
@@ -36,6 +45,31 @@ public class Graph {
     // symbol table: key = string vertex, value = set of neighboring vertices
     private Map<CellPciPair, ArrayList<CellPciPair>> cellPciNeighbourMap;
     private UUID graphId;
+
+    /**
+     * Parameterized constructor.
+     */
+    @SuppressWarnings("unchecked")
+    public Graph(String clusterInfo) {
+        JSONArray cells = new JSONArray(clusterInfo);
+
+        Map<CellPciPair, ArrayList<CellPciPair>> cellMap = new HashMap<>();
+        for (int i = 0; i < cells.length(); i++) {
+            JSONObject cell = (JSONObject) cells.get(i);
+            CellPciPair cellPciPair = new CellPciPair(cell.getString("cellId"), cell.getInt("physicalCellId"));
+            ObjectMapper mapper = new ObjectMapper();
+            ArrayList<CellPciPair> neighbours = new ArrayList<>();
+            try {
+                neighbours = mapper.readValue(cell.getString("neighbours"), ArrayList.class);
+            } catch (JSONException | IOException e) {
+                log.debug("Error parsing json: {}", e);
+            }
+            cellMap.put(cellPciPair, neighbours);
+
+        }
+
+        this.cellPciNeighbourMap = cellMap;
+    }
 
     public UUID getGraphId() {
         return graphId;
@@ -111,10 +145,10 @@ public class Graph {
      * Updates Vertex.
      */
     public void updateVertex(CellPciPair oldPair, CellPciPair newPair) {
-        String cell1 = oldPair.getCellId();
-        String cell2 = newPair.getCellId();
+        int oldPci = oldPair.getPhysicalCellId();
+        int newPci = newPair.getPhysicalCellId();
 
-        if (cell1.equals(cell2)) {
+        if (oldPci != newPci) {
 
             this.cellPciNeighbourMap.put(newPair, this.cellPciNeighbourMap.get(oldPair));
             this.cellPciNeighbourMap.remove(oldPair);
@@ -124,8 +158,8 @@ public class Graph {
 
             ArrayList<CellPciPair> al = entry.getValue();
             for (int i = 0; i < al.size(); i++) {
-                String cell3 = al.get(i).getCellId();
-                if (cell3.equals(cell1)) {
+                int pci = al.get(i).getPhysicalCellId();
+                if (pci != newPci) {
                     if (al.contains(oldPair)) {
                         al.remove(oldPair);
                         al.add(newPair);
@@ -140,6 +174,29 @@ public class Graph {
     @Override
     public String toString() {
         return "Graph [cellPciNeighbourMap=" + cellPciNeighbourMap + ", graphId=" + graphId + "]";
+    }
+
+    /**
+     * Convert Graph into a json.
+     */
+    public String getPciNeighbourJson() {
+
+        List<CellNeighbourList> cells = new ArrayList<>();
+
+        for (CellPciPair key : cellPciNeighbourMap.keySet()) {
+            JSONArray neighbours = new JSONArray(cellPciNeighbourMap.get(key));
+            CellNeighbourList cell = new CellNeighbourList(key.getCellId(), key.getPhysicalCellId(),
+                    neighbours.toString());
+            cells.add(cell);
+        }
+        ObjectMapper mapper = new ObjectMapper();
+        String pciNeighbourJson = "";
+        try {
+            pciNeighbourJson = mapper.writeValueAsString(cells);
+        } catch (JsonProcessingException e) {
+            log.debug("Error while processing json: {}", e);
+        }
+        return pciNeighbourJson;
     }
 
 }

@@ -33,7 +33,8 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional
 public interface ClusterDetailsRepository extends CrudRepository<ClusterDetails, String> {
 
-    @Query(nativeQuery = true, value = "UPDATE CLUSTER_DETAILS SET clusterInfo=?1  WHERE clusterId = ?2")
+    @Modifying
+    @Query(nativeQuery = true, value = "UPDATE CLUSTER_DETAILS SET cluster_info=?1  WHERE cluster_id = ?2")
     public void updateCluster(String clusterInfo, String clusterId);
 
     @Query(nativeQuery = true, value = "SELECT * FROM cluster_details")

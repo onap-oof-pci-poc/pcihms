@@ -19,7 +19,7 @@ public class PolicyNotification {
 
     @JsonProperty("Action")
     private String action;
-    private Payload payload;
+    private String payload;
 
     /**
      * constructor.
@@ -107,11 +107,11 @@ public class PolicyNotification {
         this.aai = aai;
     }
 
-    public Payload getPayload() {
+    public String getPayload() {
         return payload;
     }
 
-    public void setPayload(Payload payload) {
+    public void setPayload(String payload) {
         this.payload = payload;
     }
 

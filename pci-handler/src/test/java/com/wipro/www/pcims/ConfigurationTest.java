@@ -31,13 +31,11 @@ public class ConfigurationTest {
         configuration.setOptimizers(list);
         configuration.setPcimsApiKey("pcimsApiKey");
         configuration.setPcimsSecretKey("pcimsSecretKey");
-        configuration.setPolicyApiKey("policyApiKey");
         configuration.setPolicyName("policyName");
         configuration.setPolicyService("policyService");
         configuration.setPolicyTopic("policyTopic");
         configuration.setPollingInterval(30);
         configuration.setPollingTimeout(100);
-        configuration.setSdnrApiKey("sdnrApiKey");
         configuration.setSdnrService("sdnrService");
         configuration.setSdnrTopic("sdnrTopic");
         configuration.setSourceId("sourceId");
@@ -55,12 +53,10 @@ public class ConfigurationTest {
         assertEquals(list, configuration.getOptimizers());
         assertEquals("pcimsApiKey", configuration.getPcimsApiKey());
         assertEquals("pcimsSecretKey", configuration.getPcimsSecretKey());
-        assertEquals("policyApiKey", configuration.getPolicyApiKey());
         assertEquals("policyName", configuration.getPolicyName());
         assertEquals("policyService", configuration.getPolicyService());
         assertEquals("policyTopic", configuration.getPolicyTopic());
         assertEquals(30, configuration.getPollingInterval());
-        assertEquals("sdnrApiKey", configuration.getSdnrApiKey());
         assertEquals(100, configuration.getPollingTimeout());
         assertEquals("sdnrService", configuration.getSdnrService());
         assertEquals("sdnrTopic", configuration.getSdnrTopic());
