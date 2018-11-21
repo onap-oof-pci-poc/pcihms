@@ -29,7 +29,6 @@ import com.wipro.www.pcims.model.FapServiceList;
 import com.wipro.www.pcims.utils.BeanUtil;
 import java.sql.Timestamp;
 import java.util.ArrayList;
-import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.UUID;
@@ -40,7 +39,6 @@ import org.slf4j.Logger;
 public class ClusterFormation {
 
     private static final Logger log = org.slf4j.LoggerFactory.getLogger(ClusterFormation.class);
-    private BlockingQueue<List<String>> childStatusUpdate;
     private BlockingQueue<FapServiceList> queue;
     private ClusterModification clusterModification;
     private Detection detect;
@@ -52,13 +50,11 @@ public class ClusterFormation {
     }
 
     /**
-     * <<<<<<< 01b3b6e2081dd189a8965135f49f47cb57923b3b Parameterized constructor.
-     * ======= parameterized constructor. >>>>>>> child thread bugs fixed during
-     * testing
+     * parameterized constructor.
+     *
      */
-    public ClusterFormation(BlockingQueue<List<String>> childStatusUpdate, BlockingQueue<FapServiceList> queue) {
+    public ClusterFormation(BlockingQueue<FapServiceList> queue) {
         super();
-        this.childStatusUpdate = childStatusUpdate;
         this.queue = queue;
         this.detect = new Detection();
         this.clusterModification = new ClusterModification();
@@ -67,12 +63,8 @@ public class ClusterFormation {
     /**
      * Determines whether to trigger Oof or wait for notifications.
      */
-    public void triggerOrWait(Graph cluster, String networkId) {
+    public Boolean triggerOrWait(Graph cluster, Map<String, ArrayList<Integer>> collisionConfusionResult) {
         // determine collision or confusion
-        Map<String, ArrayList<Integer>> collisionConfusionResult;
-        StateOof oof = new StateOof(childStatusUpdate, queue);
-
-        collisionConfusionResult = detect.detectCollisionConfusion(cluster);
 
         Configuration configuration = Configuration.getInstance();
         int collisionSum = 0;
@@ -88,29 +80,17 @@ public class ClusterFormation {
                 confusionSum = confusionSum + arr.get(1);
             }
         }
-        if ((collisionSum >= configuration.getMinCollision()) && (confusionSum >= configuration.getMinConfusion())) {
-            oof.triggerOof(collisionConfusionResult, cluster, networkId);
-
-        } else {
-            waitForNotification(collisionConfusionResult, cluster, networkId);
-
-        }
+        return ((collisionSum >= configuration.getMinCollision()) && (confusionSum >= configuration.getMinConfusion()));
 
     }
 
     /**
      * Waits for notifications.
      */
-    public void waitForNotification(Map<String, ArrayList<Integer>> collisionConfusionResult, Graph cluster,
-            String networkId) {
-
-        StateOof oof = new StateOof(childStatusUpdate, queue);
-
-        Map<String, ArrayList<Integer>> modifiedCollisionConfusion = null;
+    public Map<String, ArrayList<Integer>> waitForNotification(Map<String, ArrayList<Integer>> collisionConfusionResult,
+            Graph cluster) {
 
         FapServiceList newNotification;
-        Configuration configuration = Configuration.getInstance();
-
         ConfigPolicy config = ConfigPolicy.getInstance();
         int timer = 60;
         try {
@@ -142,8 +122,6 @@ public class ClusterFormation {
 
             if ((difference < (timer * 1000)) && (!queue.isEmpty())) {
                 newNotification = queue.poll();
-                networkId = newNotification.getCellConfig().getLte().getRan().getNeighborListInUse()
-                        .getLteNeighborListInUseLteCell().get(0).getPlmnid();
                 cluster = clusterModification.clustermod(cluster, newNotification);
 
                 // update cluster in DB
@@ -156,25 +134,10 @@ public class ClusterFormation {
             }
         }
         if (flag != 0) {
-
-            modifiedCollisionConfusion = detect.detectCollisionConfusion(cluster);
-            int collisionSum = 0;
-            int confusionSum = 0;
-            for (Map.Entry<String, ArrayList<Integer>> entry1 : modifiedCollisionConfusion.entrySet()) {
-
-                ArrayList<Integer> arr;
-                arr = entry1.getValue();
-                if (!arr.isEmpty()) {
-                    collisionSum = collisionSum + arr.get(0);
-                    confusionSum = confusionSum + arr.get(1);
-                }
-            }
-            oof.triggerOof(modifiedCollisionConfusion, cluster, networkId);
-        } else {
-            oof.triggerOof(collisionConfusionResult, cluster, networkId);
+            return detect.detectCollisionConfusion(cluster);
 
         }
-
+        return collisionConfusionResult;
     }
 
 }

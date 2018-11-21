@@ -26,7 +26,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.wipro.www.pcims.ConfigPolicy;
 import com.wipro.www.pcims.Configuration;
 import com.wipro.www.pcims.dao.CellInfoRepository;
-import com.wipro.www.pcims.dao.ClusterDetailsRepository;
 import com.wipro.www.pcims.dao.PciRequestsRepository;
 import com.wipro.www.pcims.dmaap.PolicyDmaapClient;
 import com.wipro.www.pcims.entity.CellInfo;
@@ -38,7 +37,6 @@ import com.wipro.www.pcims.model.Common;
 import com.wipro.www.pcims.model.Configurations;
 import com.wipro.www.pcims.model.Data;
 import com.wipro.www.pcims.model.FapService;
-import com.wipro.www.pcims.model.FapServiceList;
 import com.wipro.www.pcims.model.Lte;
 import com.wipro.www.pcims.model.Payload;
 import com.wipro.www.pcims.model.PolicyNotification;
@@ -51,7 +49,6 @@ import com.wipro.www.pcims.restclient.PciSolution;
 import com.wipro.www.pcims.restclient.SdnrRestClient;
 import com.wipro.www.pcims.restclient.Solution;
 import com.wipro.www.pcims.utils.BeanUtil;
-import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -67,7 +64,6 @@ import org.slf4j.Logger;
 public class StateOof {
     private static final Logger log = org.slf4j.LoggerFactory.getLogger(StateOof.class);
     private BlockingQueue<List<String>> childStatusUpdate;
-    private BlockingQueue<FapServiceList> queue;
 
     public StateOof() {
 
@@ -77,24 +73,22 @@ public class StateOof {
      * Parameterized Constructor.
      *
      */
-    public StateOof(BlockingQueue<List<String>> childStatusUpdate, BlockingQueue<FapServiceList> queue) {
+    public StateOof(BlockingQueue<List<String>> childStatusUpdate) {
         super();
         this.childStatusUpdate = childStatusUpdate;
-        this.queue = queue;
     }
 
     /**
      * Triggers OOF.
      */
-
-    public void triggerOof(Map<String, ArrayList<Integer>> result, Graph cluster, String networkId) {
+    public void triggerOof(Map<String, ArrayList<Integer>> result, String networkId) {
         // check for 0 collision and 0 confusion
         ArrayList<CellIdList> cellidList = new ArrayList<>();
         ArrayList<String> cellIds = new ArrayList<>();
 
         for (Map.Entry<String, ArrayList<Integer>> entry : result.entrySet()) {
             String key = entry.getKey();
-            ArrayList<Integer> arr = new ArrayList<>();
+            ArrayList<Integer> arr;
             arr = entry.getValue();
             if (!arr.isEmpty()) {
                 Set<Integer> set = new HashSet<>(arr);
@@ -159,6 +153,9 @@ public class StateOof {
 
         sendToPolicy(networkId);
 
+        pciRequestsRepository = BeanUtil.getBean(PciRequestsRepository.class);
+        pciRequestsRepository.deleteByChildThreadId(childThreadId);
+
         childStatus = new ArrayList<>();
         childStatus.add(Long.toString(Thread.currentThread().getId()));
         childStatus.add("success");
@@ -169,26 +166,6 @@ public class StateOof {
             Thread.currentThread().interrupt();
 
         }
-
-        synchronized (queue) {
-
-            try {
-                while (queue.isEmpty()) {
-                    queue.wait();
-                }
-            } catch (InterruptedException e) {
-                // cleanup database
-                log.debug("cleaning up database and killing child thread");
-                Long threadId = Thread.currentThread().getId();
-                ClusterDetailsRepository clusterDetailsRepository = BeanUtil.getBean(ClusterDetailsRepository.class);
-                clusterDetailsRepository.deleteByChildThreadId(threadId);
-                pciRequestsRepository.deleteByChildThreadId(threadId);
-                return;
-            }
-
-        }
-
-        bufferNotification(cluster);
 
     }
 
@@ -218,7 +195,6 @@ public class StateOof {
             PolicyDmaapClient policy = new PolicyDmaapClient();
             boolean status = policy.sendNotificationToPolicy(notification);
             log.debug("sent Message: {}", status);
-            List<String> childStatus = new ArrayList<>();
             if (status) {
                 log.debug("Message sent to policy");
             } else {
@@ -294,59 +270,6 @@ public class StateOof {
 
         }
         return pnfs;
-    }
-
-    /**
-     * Buffer Notification.
-     */
-    public void bufferNotification(Graph cluster) {
-
-        // Processing Buffered notifications
-
-        Configuration config = Configuration.getInstance();
-
-        int bufferTime = config.getBufferTime();
-
-        Timestamp currentTime = new Timestamp(System.currentTimeMillis());
-        log.debug("Current time {}", currentTime);
-
-        Timestamp laterTime = new Timestamp(System.currentTimeMillis());
-        log.debug("Later time {}", laterTime);
-
-        long difference = laterTime.getTime() - currentTime.getTime();
-        while (difference < bufferTime) {
-            try {
-                Thread.sleep(1000);
-            } catch (InterruptedException e) {
-                log.error("InterruptedException {}", e);
-                Thread.currentThread().interrupt();
-
-            }
-            laterTime = new Timestamp(System.currentTimeMillis());
-            difference = laterTime.getTime() - currentTime.getTime();
-
-            log.debug("Timer has run for  seconds {}", difference);
-
-            if (!queue.isEmpty()) {
-
-                FapServiceList fapService;
-                ClusterModification clusterModification = new ClusterModification();
-                ClusterFormation form = new ClusterFormation();
-                Graph latestCluster;
-                fapService = queue.poll();
-                latestCluster = clusterModification.clustermod(cluster, fapService);
-                String network = fapService.getCellConfig().getLte().getRan().getNeighborListInUse()
-                        .getLteNeighborListInUseLteCell().get(0).getPlmnid();
-                try {
-                    form.triggerOrWait(latestCluster, network);
-                } catch (Exception e) {
-                    log.error("IOException {}", e);
-                }
-
-            }
-
-        }
-
     }
 
 }

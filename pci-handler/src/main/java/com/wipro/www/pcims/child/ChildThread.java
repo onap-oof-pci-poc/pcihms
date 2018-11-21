@@ -20,10 +20,18 @@
 
 package com.wipro.www.pcims.child;
 
+import com.wipro.www.pcims.Configuration;
+import com.wipro.www.pcims.dao.ClusterDetailsRepository;
 import com.wipro.www.pcims.model.FapServiceList;
 import com.wipro.www.pcims.model.ThreadId;
 import com.wipro.www.pcims.restclient.AsyncResponseBody;
+import com.wipro.www.pcims.utils.BeanUtil;
+
+import java.sql.Timestamp;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import org.slf4j.Logger;
@@ -34,8 +42,6 @@ public class ChildThread implements Runnable {
     private BlockingQueue<List<String>> childStatusUpdate;
     private BlockingQueue<FapServiceList> queue = new LinkedBlockingQueue<>();
     static BlockingQueue<AsyncResponseBody> asynchronousResponse = new LinkedBlockingQueue<>();
-    private ClusterFormation clusterFormation;
-    private String clusterId;
     private Graph cluster;
     private ThreadId threadId;
     FapServiceList fapServiceList = new FapServiceList();
@@ -45,11 +51,10 @@ public class ChildThread implements Runnable {
      * Constructor with parameters.
      */
     public ChildThread(BlockingQueue<List<String>> childStatusUpdate, Graph cluster,
-            BlockingQueue<FapServiceList> queue, String clusterId, ThreadId threadId) {
+            BlockingQueue<FapServiceList> queue, ThreadId threadId) {
         super();
         this.childStatusUpdate = childStatusUpdate;
         this.queue = queue;
-        this.clusterId = clusterId;
         this.threadId = threadId;
         this.cluster = cluster;
     }
@@ -121,18 +126,117 @@ public class ChildThread implements Runnable {
             Thread.currentThread().interrupt();
         }
 
-        clusterFormation = new ClusterFormation(childStatusUpdate, queue);
+        ClusterFormation clusterFormation = new ClusterFormation(queue);
+        StateOof oof = new StateOof(childStatusUpdate);
+        ClusterModification clusterModification = new ClusterModification();
+        Detection detect = new Detection();
 
         try {
             String networkId = fapServiceList.getCellConfig().getLte().getRan().getNeighborListInUse()
                     .getLteNeighborListInUseLteCell().get(0).getPlmnid();
-            clusterFormation.triggerOrWait(cluster, networkId);
+
+            Boolean done = false;
+
+            while (!done) {
+
+                Map<String, ArrayList<Integer>> collisionConfusionResult = detect.detectCollisionConfusion(cluster);
+                Boolean trigger = clusterFormation.triggerOrWait(cluster, collisionConfusionResult);
+
+                if (!trigger) {
+                    collisionConfusionResult = clusterFormation.waitForNotification(collisionConfusionResult, cluster);
+                }
+                oof.triggerOof(collisionConfusionResult, networkId);
+
+                if (isNotificationsBuffered()) {
+                    List<FapServiceList> fapServiceLists = bufferNotification();
+                    for (FapServiceList fapService : fapServiceLists) {
+                        cluster = clusterModification.clustermod(cluster, fapService);
+                    }
+                    String cellPciNeighbourString = cluster.getPciNeighbourJson();
+                    UUID clusterId = cluster.getGraphId();
+                    ClusterDetailsRepository clusterDetailsRepository = BeanUtil
+                            .getBean(ClusterDetailsRepository.class);
+                    clusterDetailsRepository.updateCluster(cellPciNeighbourString, clusterId.toString());
+
+                } else {
+                    done = true;
+                }
+
+            }
+
         } catch (Exception e) {
             log.error("{}", e);
         }
 
+        cleanup();
+    }
+
+    private boolean isNotificationsBuffered() {
+        synchronized (queue) {
+
+            try {
+                while (queue.isEmpty()) {
+                    queue.wait();
+                }
+            } catch (InterruptedException e) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    /**
+     * cleanup resources.
+     */
+    private void cleanup() {
+        log.debug("cleaning up database and killing child thread");
+        ClusterDetailsRepository clusterDetailsRepository = BeanUtil.getBean(ClusterDetailsRepository.class);
+        clusterDetailsRepository.deleteByChildThreadId(threadId.getChildThreadId());
         log.debug("Child thread :{} {}", Thread.currentThread().getId(), "completed");
         MDC.remove("logFileName");
+
+    }
+
+    /**
+     * Buffer Notification.
+     */
+    public List<FapServiceList> bufferNotification() {
+
+        // Processing Buffered notifications
+
+        List<FapServiceList> fapServiceLists = new ArrayList<>();
+
+        Configuration config = Configuration.getInstance();
+
+        int bufferTime = config.getBufferTime();
+
+        Timestamp currentTime = new Timestamp(System.currentTimeMillis());
+        log.debug("Current time {}", currentTime);
+
+        Timestamp laterTime = new Timestamp(System.currentTimeMillis());
+        log.debug("Later time {}", laterTime);
+
+        long difference = laterTime.getTime() - currentTime.getTime();
+        while (difference < bufferTime) {
+            try {
+                Thread.sleep(1000);
+            } catch (InterruptedException e) {
+                log.error("InterruptedException {}", e);
+                Thread.currentThread().interrupt();
+
+            }
+            laterTime = new Timestamp(System.currentTimeMillis());
+            difference = laterTime.getTime() - currentTime.getTime();
+
+            log.debug("Timer has run for  seconds {}", difference);
+
+            if (!queue.isEmpty()) {
+                FapServiceList fapService;
+                fapService = queue.poll();
+                fapServiceLists.add(fapService);
+            }
+        }
+        return fapServiceLists;
     }
 
 }

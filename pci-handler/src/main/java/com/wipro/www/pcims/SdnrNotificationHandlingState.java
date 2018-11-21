@@ -82,13 +82,13 @@ public class SdnrNotificationHandlingState implements PciState {
                     Graph cluster = createCluster(fapService);
                     // save to db
                     UUID clusterId = UUID.randomUUID();
+                    cluster.setGraphId(clusterId);
                     // create the child thread
                     log.debug("creating new child");
                     BlockingQueue<FapServiceList> queue = new LinkedBlockingQueue<>();
                     ThreadId threadId = new ThreadId();
                     threadId.setChildThreadId(0);
-                    ChildThread child = new ChildThread(pciContext.getChildStatusUpdate(), cluster, queue,
-                            clusterId.toString(), threadId);
+                    ChildThread child = new ChildThread(pciContext.getChildStatusUpdate(), cluster, queue, threadId);
                     queue.put(fapService);
                     MainThreadComponent mainThreadComponent = BeanUtil.getBean(MainThreadComponent.class);
                     mainThreadComponent.getPool().execute(child);
