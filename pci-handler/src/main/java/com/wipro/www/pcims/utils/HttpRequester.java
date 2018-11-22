@@ -49,6 +49,7 @@ public class HttpRequester {
         @Override
         public boolean verify(String hostname, SSLSession session) {
             // verification of hostname is switched off
+            log.debug("Hostname: {}", hostname);
             return true;
         }
     }

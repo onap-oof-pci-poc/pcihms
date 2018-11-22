@@ -21,17 +21,20 @@
 package com.wipro.www.pcims.restclient;
 
 import com.wipro.www.pcims.Configuration;
+import com.wipro.www.pcims.model.CellPciPair;
 import com.wipro.www.pcims.utils.HttpRequester;
 
 import java.sql.Time;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.List;
 
+import org.json.JSONArray;
 import org.json.JSONObject;
 
 public class SdnrRestClient {
 
-    private static final String DATETIMEFORMAT = "yyyy.MM.dd.HH.mm.ss";
-    private static final String CELLID = "cellId=";
+    private static final String DATETIMEFORMAT = "yyyy-MM-dd HH:mm:ss";
 
     private SdnrRestClient() {
 
@@ -43,32 +46,40 @@ public class SdnrRestClient {
     public static String getCellList(String networkId) {
         Configuration configuration = Configuration.getInstance();
         String ts = new SimpleDateFormat(DATETIMEFORMAT).format(new Time(System.currentTimeMillis()));
-        String requestParams = "networkId=" + networkId + "&ts=" + ts;
-        String requestUrl = configuration.getSdnrService() + "/SDNCConfigDBAPI/getCellList" + "?" + requestParams;
+        String requestUrl = configuration.getSdnrService() + "/SDNCConfigDBAPI/getCellList" + "/" + networkId + "/"
+                + ts;
         return HttpRequester.sendGetRequest(requestUrl);
     }
 
     /**
      * Method to get neibhbour list from SDNR.
      */
-    public static String getNbrList(String cellId) {
+    public static List<CellPciPair> getNbrList(String cellId) {
         Configuration configuration = Configuration.getInstance();
         String ts = new SimpleDateFormat(DATETIMEFORMAT).format(new Time(System.currentTimeMillis()));
-        String requestParams = CELLID + cellId + "&ts=" + ts;
-        String requestUrl = configuration.getSdnrService() + "/SDNCConfigDBAPI/getNbrList" + "?" + requestParams;
-        return HttpRequester.sendGetRequest(requestUrl);
+        String requestUrl = configuration.getSdnrService() + "/SDNCConfigDBAPI/getNbrList" + "/" + cellId + "/" + ts;
+        String response = HttpRequester.sendGetRequest(requestUrl);
+        List<CellPciPair> nbrList = new ArrayList<>();
+        JSONArray nbrListObj = new JSONArray(response);
+        for (int i = 0; i < nbrListObj.length(); i++) {
+            JSONObject cellObj = nbrListObj.getJSONObject(i);
+            CellPciPair cell = new CellPciPair(cellObj.getString("cellId"), cellObj.getInt("pciValue"));
+            nbrList.add(cell);
+        }
 
+        return nbrList;
     }
 
     /**
      * Method to get PCI from SDNR.
      */
-    public static String getPci(String cellId) {
+    public static int getPci(String cellId) {
         Configuration configuration = Configuration.getInstance();
         String ts = new SimpleDateFormat(DATETIMEFORMAT).format(new Time(System.currentTimeMillis()));
-        String requestParams = CELLID + cellId + "&ts=" + ts;
-        String requestUrl = configuration.getSdnrService() + "/SDNCConfigDBAPI/getPCI" + "?" + requestParams;
-        return HttpRequester.sendGetRequest(requestUrl);
+        String requestUrl = configuration.getSdnrService() + "/SDNCConfigDBAPI/getPCI" + "/" + cellId + "/" + ts;
+        String response = HttpRequester.sendGetRequest(requestUrl);
+        JSONObject respObj = new JSONObject(response);
+        return respObj.getInt("value");
     }
 
     /**
@@ -77,11 +88,10 @@ public class SdnrRestClient {
     public static String getPnfName(String cellId) {
         Configuration configuration = Configuration.getInstance();
         String ts = new SimpleDateFormat(DATETIMEFORMAT).format(new Time(System.currentTimeMillis()));
-        String requestParams = CELLID + cellId + "&ts=" + ts;
-        String requestUrl = configuration.getSdnrService() + "/SDNCConfigDBAPI/getPnfName" + "?" + requestParams;
+        String requestUrl = configuration.getSdnrService() + "/SDNCConfigDBAPI/getPnfName" + "/" + cellId + "/" + ts;
         String response = HttpRequester.sendGetRequest(requestUrl);
         JSONObject responseObject = new JSONObject(response);
-        return responseObject.getString("pnfName");
+        return responseObject.getString("value");
     }
 
 }

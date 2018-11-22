@@ -32,7 +32,6 @@ import com.wipro.www.pcims.model.CellPciPair;
 import com.wipro.www.pcims.model.FapServiceList;
 import com.wipro.www.pcims.model.LteNeighborListInUseLteCell;
 import com.wipro.www.pcims.model.Notification;
-import com.wipro.www.pcims.model.Response;
 import com.wipro.www.pcims.model.ThreadId;
 import com.wipro.www.pcims.restclient.SdnrRestClient;
 import com.wipro.www.pcims.utils.BeanUtil;
@@ -47,8 +46,6 @@ import java.util.UUID;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 
-import org.json.JSONArray;
-import org.json.JSONObject;
 import org.slf4j.Logger;
 
 public class SdnrNotificationHandlingState implements PciState {
@@ -180,24 +177,11 @@ public class SdnrNotificationHandlingState implements PciState {
             cluster.addEdge(val, val1);
             log.debug("cluster: {}", cluster.toString());
 
-            String response = SdnrRestClient.getNbrList(neighbourlist.get(i).getAlias());
-            log.debug("response: {}", response);
+            List<CellPciPair> nbrList = SdnrRestClient.getNbrList(neighbourlist.get(i).getAlias());
 
-            ArrayList<Response> sdnrResponse = new ArrayList<>();
-            JSONArray responseList = new JSONArray(response);
-            for (int j = 0; j < responseList.length(); j++) {
-                JSONObject resp = (JSONObject) responseList.get(j);
-                Response responseObj = new Response();
-                responseObj.setCellId(resp.getString("cellId"));
-                responseObj.setPci(resp.getInt("pci"));
-                sdnrResponse.add(responseObj);
-            }
-
-            log.debug("responselist :{}", sdnrResponse);
-
-            for (int k = 0; k < sdnrResponse.size(); k++) {
-                String cid = sdnrResponse.get(k).getCellId();
-                int pci = sdnrResponse.get(k).getPci();
+            for (CellPciPair nbr : nbrList) {
+                String cid = nbr.getCellId();
+                int pci = nbr.getPhysicalCellId();
                 CellPciPair val3 = new CellPciPair();
                 val3.setCellId(cid);
                 val3.setPhysicalCellId(pci);
