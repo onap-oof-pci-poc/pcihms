@@ -29,6 +29,11 @@ public class CellPciPair {
     @JsonProperty("physicalCellId")
     private int physicalCellId;
 
+    @Override
+    public String toString() {
+        return "CellPciPair [cellId=" + cellId + ", physicalCellId=" + physicalCellId + "]";
+    }
+
     public CellPciPair() {
 
     }
@@ -87,10 +92,7 @@ public class CellPciPair {
         } else if (!cellId.equals(other.cellId)) {
             return false;
         }
-        if (physicalCellId != other.physicalCellId) {
-            return false;
-        }
-        return true;
+        return (physicalCellId == other.physicalCellId);
     }
 
 }

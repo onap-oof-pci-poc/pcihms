@@ -25,6 +25,7 @@ import com.wipro.www.pcims.model.CellPciPair;
 import com.wipro.www.pcims.model.FapServiceList;
 import com.wipro.www.pcims.model.LteNeighborListInUseLteCell;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 import org.slf4j.Logger;
@@ -43,7 +44,7 @@ public class ClusterModification {
         CellPciPair mainCellPciPair = new CellPciPair();
         mainCellPciPair.setCellId(cellId);
         mainCellPciPair.setPhysicalCellId(phycellId);
-        ArrayList<LteNeighborListInUseLteCell> newNeighbourList;
+        List<LteNeighborListInUseLteCell> newNeighbourList;
         newNeighbourList = fapser.getCellConfig().getLte().getRan().getNeighborListInUse()
                 .getLteNeighborListInUseLteCell();
 
@@ -52,7 +53,7 @@ public class ClusterModification {
 
         // coe
 
-        ArrayList<CellPciPair> tempCellPair = new ArrayList<CellPciPair>();
+        List<CellPciPair> tempCellPair = new ArrayList<>();
         for (Map.Entry<CellPciPair, ArrayList<CellPciPair>> entry : clusterMap.entrySet()) {
             CellPciPair oldClusterKeys = entry.getKey();
             tempCellPair.add(oldClusterKeys);

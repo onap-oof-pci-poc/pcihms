@@ -29,6 +29,7 @@ import com.wipro.www.pcims.utils.BeanUtil;
 
 import java.sql.Timestamp;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -41,7 +42,9 @@ public class ChildThread implements Runnable {
 
     private BlockingQueue<List<String>> childStatusUpdate;
     private BlockingQueue<FapServiceList> queue = new LinkedBlockingQueue<>();
-    static BlockingQueue<AsyncResponseBody> asynchronousResponse = new LinkedBlockingQueue<>();
+    // static BlockingQueue<AsyncResponseBody> asynchronousResponse = new
+    // LinkedBlockingQueue<>();
+    private static Map<Long, AsyncResponseBody> responseMap = new HashMap<>();
     private Graph cluster;
     private ThreadId threadId;
     FapServiceList fapServiceList = new FapServiceList();
@@ -78,7 +81,7 @@ public class ChildThread implements Runnable {
         synchronized (queue) {
             try {
                 queue.put(fapserviceList);
-                queue.notify();
+                queue.notifyAll();
             } catch (InterruptedException e) {
                 log.error(" The Thread is Interrupted", e);
                 Thread.currentThread().interrupt();
@@ -91,18 +94,15 @@ public class ChildThread implements Runnable {
     /**
      * Puts response in queue.
      */
-    public void putResponse(AsyncResponseBody obj) {
-        synchronized (ChildThread.asynchronousResponse) {
-            try {
-                asynchronousResponse.put(obj);
-                asynchronousResponse.notify();
-            } catch (InterruptedException e) {
-                log.error("The Thread is Interrupted", e);
-                Thread.currentThread().interrupt();
-
-            }
+    public static void putResponse(Long threadId, AsyncResponseBody obj) {
+        synchronized (responseMap) {
+            responseMap.put(threadId, obj);
         }
 
+    }
+
+    public static Map<Long, AsyncResponseBody> getResponseMap() {
+        return responseMap;
     }
 
     @Override
@@ -119,7 +119,7 @@ public class ChildThread implements Runnable {
         try {
             fapServiceList = queue.take();
             if (log.isDebugEnabled()) {
-                log.debug("fapServicelist: {}", fapServiceList.toString());
+                log.debug("fapServicelist: {}", fapServiceList);
             }
         } catch (InterruptedException e1) {
             log.error("InterruptedException is {}", e1);
@@ -140,7 +140,7 @@ public class ChildThread implements Runnable {
             while (!done) {
 
                 Map<String, ArrayList<Integer>> collisionConfusionResult = detect.detectCollisionConfusion(cluster);
-                Boolean trigger = clusterFormation.triggerOrWait(cluster, collisionConfusionResult);
+                Boolean trigger = clusterFormation.triggerOrWait(collisionConfusionResult);
 
                 if (!trigger) {
                     collisionConfusionResult = clusterFormation.waitForNotification(collisionConfusionResult, cluster);
@@ -179,6 +179,7 @@ public class ChildThread implements Runnable {
                     queue.wait();
                 }
             } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
                 return false;
             }
         }

@@ -21,7 +21,6 @@
 package com.wipro.www.pcims.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import java.util.ArrayList;
 import java.util.List;
 
 public class RadioAccess {
@@ -40,7 +39,7 @@ public class RadioAccess {
      * Parameterized Constructor.
      */
 
-    public RadioAccess(String fapServiceNumberOfEntries, ArrayList<FapServiceList> fapServiceList) {
+    public RadioAccess(String fapServiceNumberOfEntries, List<FapServiceList> fapServiceList) {
         super();
         this.fapServiceNumberOfEntries = fapServiceNumberOfEntries;
         this.fapServiceList = fapServiceList;

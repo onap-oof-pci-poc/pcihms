@@ -116,8 +116,8 @@ public class DmaapClient {
             Set<String> topicsInDmaap = getAllTopicsFromDmaap();
 
             createTopic(topic, topicsInDmaap);
-            subscribeToTopic(configuration.getServers(), topic.getName(), topic.getProducer(), PRODUCER);
-            subscribeToTopic(configuration.getServers(), topic.getName(), topic.getConsumer(), CONSUMER);
+            subscribeToTopic(topic.getName(), topic.getProducer(), PRODUCER);
+            subscribeToTopic(topic.getName(), topic.getConsumer(), CONSUMER);
 
         }
 
@@ -186,20 +186,19 @@ public class DmaapClient {
     /**
      * subscribe to topic.
      */
-    private void subscribeToTopic(List<String> servers, String topicName, String subscriberApiKey,
-            String subscriberType) {
-        CambriaTopicManager topicManager = null;
-        try {
-            topicManager = buildCambriaClient(new TopicManagerBuilder().usingHosts(servers)
-                    .authenticatedBy(configuration.getManagerApiKey(), configuration.getManagerSecretKey()));
-            if (subscriberType.equals(PRODUCER)) {
+    private void subscribeToTopic(String topicName, String subscriberApiKey, String subscriberType) {
+        if (subscriberType.equals(PRODUCER)) {
+            try {
                 topicManager.allowProducer(topicName, subscriberApiKey);
-            } else if (subscriberType.equals(CONSUMER)) {
-                topicManager.allowConsumer(topicName, subscriberApiKey);
+            } catch (HttpException | IOException e) {
+                log.debug("error while subscribing to a topic: {}", e);
             }
-            topicManager.close();
-        } catch (GeneralSecurityException | HttpException | IOException e) {
-            log.debug("exception during topicManger creation", e);
+        } else if (subscriberType.equals(CONSUMER)) {
+            try {
+                topicManager.allowConsumer(topicName, subscriberApiKey);
+            } catch (HttpException | IOException e) {
+                log.debug("error while subscribing to a topic: {}", e);
+            }
         }
 
     }

@@ -21,6 +21,7 @@
 package com.wipro.www.pcims.restclient;
 
 import com.wipro.www.pcims.Configuration;
+import com.wipro.www.pcims.exceptions.ConfigDbNotFoundException;
 import com.wipro.www.pcims.model.CellPciPair;
 import com.wipro.www.pcims.utils.HttpRequester;
 
@@ -31,10 +32,13 @@ import java.util.List;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class SdnrRestClient {
 
     private static final String DATETIMEFORMAT = "yyyy-MM-dd HH:mm:ss";
+    private static Logger log = LoggerFactory.getLogger(SdnrRestClient.class);
 
     private SdnrRestClient() {
 
@@ -42,23 +46,31 @@ public class SdnrRestClient {
 
     /**
      * Method to get cell list from SDNR.
+     *
+     * @throws ConfigDbNotFoundException
+     *             when request to configDB fails
      */
-    public static String getCellList(String networkId) {
+    public static String getCellList(String networkId) throws ConfigDbNotFoundException {
         Configuration configuration = Configuration.getInstance();
         String ts = new SimpleDateFormat(DATETIMEFORMAT).format(new Time(System.currentTimeMillis()));
         String requestUrl = configuration.getSdnrService() + "/SDNCConfigDBAPI/getCellList" + "/" + networkId + "/"
-                + ts;
-        return HttpRequester.sendGetRequest(requestUrl);
+                + encode(ts);
+        return sendRequest(requestUrl);
     }
 
     /**
      * Method to get neibhbour list from SDNR.
+     *
+     * @throws ConfigDbNotFoundException
+     *             when request to configDB fails
      */
-    public static List<CellPciPair> getNbrList(String cellId) {
+    public static List<CellPciPair> getNbrList(String cellId) throws ConfigDbNotFoundException {
         Configuration configuration = Configuration.getInstance();
         String ts = new SimpleDateFormat(DATETIMEFORMAT).format(new Time(System.currentTimeMillis()));
-        String requestUrl = configuration.getSdnrService() + "/SDNCConfigDBAPI/getNbrList" + "/" + cellId + "/" + ts;
-        String response = HttpRequester.sendGetRequest(requestUrl);
+        String requestUrl = configuration.getSdnrService() + "/SDNCConfigDBAPI/getNbrList" + "/" + cellId + "/"
+                + encode(ts);
+        log.debug("request url: {}", requestUrl);
+        String response = sendRequest(requestUrl);
         List<CellPciPair> nbrList = new ArrayList<>();
         JSONArray nbrListObj = new JSONArray(response);
         for (int i = 0; i < nbrListObj.length(); i++) {
@@ -72,26 +84,52 @@ public class SdnrRestClient {
 
     /**
      * Method to get PCI from SDNR.
+     *
+     * @throws ConfigDbNotFoundException
+     *             when request to configDB fails
      */
-    public static int getPci(String cellId) {
+    public static int getPci(String cellId) throws ConfigDbNotFoundException {
         Configuration configuration = Configuration.getInstance();
         String ts = new SimpleDateFormat(DATETIMEFORMAT).format(new Time(System.currentTimeMillis()));
-        String requestUrl = configuration.getSdnrService() + "/SDNCConfigDBAPI/getPCI" + "/" + cellId + "/" + ts;
-        String response = HttpRequester.sendGetRequest(requestUrl);
+        String requestUrl = configuration.getSdnrService() + "/SDNCConfigDBAPI/getPCI" + "/" + cellId + "/"
+                + encode(ts);
+        String response = sendRequest(requestUrl);
         JSONObject respObj = new JSONObject(response);
         return respObj.getInt("value");
     }
 
     /**
      * Method to get PNF name from SDNR.
+     *
+     * @throws ConfigDbNotFoundException
+     *             when request to configDB fails
      */
-    public static String getPnfName(String cellId) {
+    public static String getPnfName(String cellId) throws ConfigDbNotFoundException {
         Configuration configuration = Configuration.getInstance();
         String ts = new SimpleDateFormat(DATETIMEFORMAT).format(new Time(System.currentTimeMillis()));
-        String requestUrl = configuration.getSdnrService() + "/SDNCConfigDBAPI/getPnfName" + "/" + cellId + "/" + ts;
-        String response = HttpRequester.sendGetRequest(requestUrl);
+        String requestUrl = configuration.getSdnrService() + "/SDNCConfigDBAPI/getPnfName" + "/" + cellId + "/"
+                + encode(ts);
+        String response = sendRequest(requestUrl);
         JSONObject responseObject = new JSONObject(response);
         return responseObject.getString("value");
+    }
+
+    /**
+     * Method to encode url.
+     */
+    private static String encode(String url) {
+        return url.replace(" ", "%20");
+    }
+
+    /**
+     * Method to send request.
+     */
+    private static String sendRequest(String url) throws ConfigDbNotFoundException {
+        String response = HttpRequester.sendGetRequest(url);
+        if (response.equals("")) {
+            throw new ConfigDbNotFoundException("Cannot reach Config DB");
+        }
+        return response;
     }
 
 }

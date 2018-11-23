@@ -162,11 +162,12 @@ public class HttpRequester {
             }
 
             else {
-                response = "404";
+                response = "";
+                log.debug("return code: {}", returnCode);
             }
         } catch (Exception e) {
-            String exc = e.toString();
-            response = "Get failed,Exception : " + exc;
+            log.debug("Get failed,Exception : {}", e);
+            response = "";
         }
         return response;
 

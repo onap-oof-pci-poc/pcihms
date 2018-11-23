@@ -30,6 +30,7 @@ import com.wipro.www.pcims.dao.PciRequestsRepository;
 import com.wipro.www.pcims.dmaap.PolicyDmaapClient;
 import com.wipro.www.pcims.entity.CellInfo;
 import com.wipro.www.pcims.entity.PciRequests;
+import com.wipro.www.pcims.exceptions.ConfigDbNotFoundException;
 import com.wipro.www.pcims.model.Aai;
 import com.wipro.www.pcims.model.CellConfig;
 import com.wipro.www.pcims.model.CellPciPair;
@@ -139,19 +140,17 @@ public class StateOof {
         PciRequestsRepository pciRequestsRepository = BeanUtil.getBean(PciRequestsRepository.class);
         pciRequestsRepository.save(pciRequest);
 
-        try {
-            synchronized (ChildThread.asynchronousResponse) {
-                while (ChildThread.asynchronousResponse.isEmpty()) {
-                    ChildThread.asynchronousResponse.wait();
-                }
-            }
-        } catch (InterruptedException e) {
+        while (!ChildThread.getResponseMap().containsKey(childThreadId)) {
 
-            log.error("ChildThread queue error {}", e);
-            Thread.currentThread().interrupt();
         }
 
-        sendToPolicy(networkId);
+        AsyncResponseBody asynResponseBody = ChildThread.getResponseMap().get(childThreadId);
+
+        try {
+            sendToPolicy(asynResponseBody, networkId);
+        } catch (ConfigDbNotFoundException e1) {
+            log.debug("Config DB is unreachable: {}", e1);
+        }
 
         pciRequestsRepository = BeanUtil.getBean(PciRequestsRepository.class);
         pciRequestsRepository.deleteByChildThreadId(childThreadId);
@@ -171,11 +170,11 @@ public class StateOof {
 
     /**
      * Sends Dmaap notification to Policy.
+     *
+     * @throws ConfigDbNotFoundException
+     *             when config db is unreachable
      */
-    private void sendToPolicy(String networkId) {
-
-        AsyncResponseBody async = null;
-        async = ChildThread.asynchronousResponse.poll();
+    private void sendToPolicy(AsyncResponseBody async, String networkId) throws ConfigDbNotFoundException {
 
         if (log.isDebugEnabled()) {
             log.debug(async.toString());
@@ -240,7 +239,7 @@ public class StateOof {
         return notification;
     }
 
-    private Map<String, List<CellPciPair>> getPnfs(List<Solution> solutions) {
+    private Map<String, List<CellPciPair>> getPnfs(List<Solution> solutions) throws ConfigDbNotFoundException {
 
         Map<String, List<CellPciPair>> pnfs = new HashMap<>();
 

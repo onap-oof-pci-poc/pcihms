@@ -20,6 +20,7 @@
 
 package com.wipro.www.pcims;
 
+import com.wipro.www.pcims.child.ChildThread;
 import com.wipro.www.pcims.restclient.AsyncResponseBody;
 
 import org.slf4j.Logger;
@@ -48,7 +49,7 @@ public class PciController {
         long childThreadId = pciRequestsComponent.getChildThread(transactionId);
         log.debug("childThreadId {}", childThreadId);
 
-        SdnrNotificationHandlingState.getChildThreadMap().get(childThreadId).putResponse(callback);
+        ChildThread.putResponse(childThreadId, callback);
         return "Forwarded to child thread";
 
     }

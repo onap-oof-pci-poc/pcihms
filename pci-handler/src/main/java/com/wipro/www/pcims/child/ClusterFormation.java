@@ -63,7 +63,7 @@ public class ClusterFormation {
     /**
      * Determines whether to trigger Oof or wait for notifications.
      */
-    public Boolean triggerOrWait(Graph cluster, Map<String, ArrayList<Integer>> collisionConfusionResult) {
+    public Boolean triggerOrWait(Map<String, ArrayList<Integer>> collisionConfusionResult) {
         // determine collision or confusion
 
         Configuration configuration = Configuration.getInstance();

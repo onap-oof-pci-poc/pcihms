@@ -28,6 +28,7 @@ import com.wipro.www.pcims.dao.CellInfoRepository;
 import com.wipro.www.pcims.dao.ClusterDetailsRepository;
 import com.wipro.www.pcims.entity.CellInfo;
 import com.wipro.www.pcims.entity.ClusterDetails;
+import com.wipro.www.pcims.exceptions.ConfigDbNotFoundException;
 import com.wipro.www.pcims.model.CellPciPair;
 import com.wipro.www.pcims.model.FapServiceList;
 import com.wipro.www.pcims.model.LteNeighborListInUseLteCell;
@@ -89,17 +90,9 @@ public class SdnrNotificationHandlingState implements PciState {
                     queue.put(fapService);
                     MainThreadComponent mainThreadComponent = BeanUtil.getBean(MainThreadComponent.class);
                     mainThreadComponent.getPool().execute(child);
-                    try {
-                        synchronized (threadId) {
-                            while (threadId.getChildThreadId() == 0) {
-                                threadId.wait();
-                            }
-                        }
-                    } catch (InterruptedException e) {
 
-                        log.error("ChildThread queue error {}", e);
-                        Thread.currentThread().interrupt();
-                    }
+                    waitForThreadId(threadId);
+
                     saveCluster(cluster, clusterId, threadId.getChildThreadId());
                     addChildThreadMap(threadId.getChildThreadId(), child);
                     pciContext.addChildStatus(threadId.getChildThreadId(), "processingNotifications");
@@ -126,6 +119,20 @@ public class SdnrNotificationHandlingState implements PciState {
         pciContext.stateChange(pciContext);
     }
 
+    private void waitForThreadId(ThreadId threadId) {
+        try {
+            synchronized (threadId) {
+                while (threadId.getChildThreadId() == 0) {
+                    threadId.wait();
+                }
+            }
+        } catch (InterruptedException e) {
+
+            log.error("ChildThread queue error {}", e);
+            Thread.currentThread().interrupt();
+        }
+    }
+
     private String saveCluster(Graph cluster, UUID clusterId, Long threadId) {
 
         String cellPciNeighbourString = cluster.getPciNeighbourJson();
@@ -144,7 +151,7 @@ public class SdnrNotificationHandlingState implements PciState {
         return clusterId.toString();
     }
 
-    private Graph createCluster(FapServiceList fapService) {
+    private Graph createCluster(FapServiceList fapService) throws ConfigDbNotFoundException {
 
         Graph cluster = new Graph();
         log.debug("cluster formation started");
@@ -173,9 +180,8 @@ public class SdnrNotificationHandlingState implements PciState {
             CellPciPair val1 = new CellPciPair();
             val1.setCellId(cell);
             val1.setPhysicalCellId(phy);
-            log.debug(val1.toString());
             cluster.addEdge(val, val1);
-            log.debug("cluster: {}", cluster.toString());
+            log.debug("cluster: {}", cluster);
 
             List<CellPciPair> nbrList = SdnrRestClient.getNbrList(neighbourlist.get(i).getAlias());
 
@@ -218,7 +224,7 @@ public class SdnrNotificationHandlingState implements PciState {
     private ClusterDetails getClusterForNotification(FapServiceList fapService, List<ClusterDetails> clusterDetails) {
 
         String cellId = fapService.getCellConfig().getLte().getRan().getCellIdentity();
-        Map<CellPciPair, ArrayList<CellPciPair>> cellPciNeighbourMap = new HashMap<>();
+        Map<CellPciPair, ArrayList<CellPciPair>> cellPciNeighbourMap;
 
         for (ClusterDetails clusterDetail : clusterDetails) {
             Graph cluster = new Graph(clusterDetail.getClusterInfo());

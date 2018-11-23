@@ -30,6 +30,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.UUID;
 
 import java.util.concurrent.ConcurrentHashMap;
@@ -159,11 +160,9 @@ public class Graph {
             ArrayList<CellPciPair> al = entry.getValue();
             for (int i = 0; i < al.size(); i++) {
                 int pci = al.get(i).getPhysicalCellId();
-                if (pci != newPci) {
-                    if (al.contains(oldPair)) {
-                        al.remove(oldPair);
-                        al.add(newPair);
-                    }
+                if ((pci != newPci) && al.contains(oldPair)) {
+                    al.remove(oldPair);
+                    al.add(newPair);
                 }
             }
         }
@@ -183,7 +182,8 @@ public class Graph {
 
         List<CellNeighbourList> cells = new ArrayList<>();
 
-        for (CellPciPair key : cellPciNeighbourMap.keySet()) {
+        for (Entry<CellPciPair, ArrayList<CellPciPair>> entry : cellPciNeighbourMap.entrySet()) {
+            CellPciPair key = entry.getKey();
             JSONArray neighbours = new JSONArray(cellPciNeighbourMap.get(key));
             CellNeighbourList cell = new CellNeighbourList(key.getCellId(), key.getPhysicalCellId(),
                     neighbours.toString());

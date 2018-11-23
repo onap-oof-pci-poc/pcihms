@@ -21,11 +21,11 @@
 package com.wipro.www.pcims.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import java.util.ArrayList;
+import java.util.List;
 
 public class NeighborListInUse {
     @JsonProperty("LTENeighborListInUseLTECell")
-    private ArrayList<LteNeighborListInUseLteCell> lteNeighborListInUseLteCell;
+    private List<LteNeighborListInUseLteCell> lteNeighborListInUseLteCell;
 
     @JsonProperty("LTECellNumberOfEntries")
     private String lteCellNumberOfEntries;
@@ -38,18 +38,18 @@ public class NeighborListInUse {
      * Parameterized Constructor.
      */
 
-    public NeighborListInUse(ArrayList<LteNeighborListInUseLteCell> lteNeighborListInUseLteCell,
+    public NeighborListInUse(List<LteNeighborListInUseLteCell> lteNeighborListInUseLteCell,
             String lteCellNumberOfEntries) {
         super();
         this.lteNeighborListInUseLteCell = lteNeighborListInUseLteCell;
         this.lteCellNumberOfEntries = lteCellNumberOfEntries;
     }
 
-    public ArrayList<LteNeighborListInUseLteCell> getLteNeighborListInUseLteCell() {
+    public List<LteNeighborListInUseLteCell> getLteNeighborListInUseLteCell() {
         return lteNeighborListInUseLteCell;
     }
 
-    public void setLteNeighborListInUseLteCell(ArrayList<LteNeighborListInUseLteCell> lteNeighborListInUseLteCell) {
+    public void setLteNeighborListInUseLteCell(List<LteNeighborListInUseLteCell> lteNeighborListInUseLteCell) {
         this.lteNeighborListInUseLteCell = lteNeighborListInUseLteCell;
     }
 

@@ -72,7 +72,7 @@ public class Detection {
 
                 }
                 counts.add(confusionCount);
-                log.debug("count {}", counts.toString());
+                log.debug("count {}", counts);
 
             }
             hash.put(cellId, counts);
