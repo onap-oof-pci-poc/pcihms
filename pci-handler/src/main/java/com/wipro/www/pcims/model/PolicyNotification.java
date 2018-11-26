@@ -1,6 +1,9 @@
 package com.wipro.www.pcims.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+
+import java.util.HashMap;
+import java.util.Map;
 import java.util.UUID;
 
 public class PolicyNotification {
@@ -9,10 +12,17 @@ public class PolicyNotification {
     private long closedLoopAlarmStart;
     private String closedLoopEventClient;
     private String closedLoopEventStatus;
+
+    @JsonProperty("target_type")
+    private String targetType;
+
+    private String target;
+
+    @JsonProperty("requestID")
     private String requestId;
 
     @JsonProperty("AAI")
-    private Aai aai;
+    private Map<String, String> aai;
 
     private String from;
     private String version;
@@ -32,6 +42,12 @@ public class PolicyNotification {
         this.from = "PCIMS";
         this.version = "1.0.2";
         this.action = "ModifyConfig";
+        this.target = "generic-vnf.vnf-id";
+        this.targetType = "VNF";
+        this.aai = new HashMap<>();
+        aai.put("generic-vnf.is-closed-loop-disabled", "false");
+        aai.put("generic-vnf.prov-status", "ACTIVE");
+        aai.put("generic-vnf.vnf-id", "notused");
 
     }
 
@@ -99,14 +115,6 @@ public class PolicyNotification {
         this.closedLoopControlName = closedLoopControlName;
     }
 
-    public Aai getAai() {
-        return aai;
-    }
-
-    public void setAai(Aai aai) {
-        this.aai = aai;
-    }
-
     public String getPayload() {
         return payload;
     }
@@ -115,12 +123,37 @@ public class PolicyNotification {
         this.payload = payload;
     }
 
+    public String getTargetType() {
+        return targetType;
+    }
+
+    public void setTargetType(String targetType) {
+        this.targetType = targetType;
+    }
+
+    public String getTarget() {
+        return target;
+    }
+
+    public void setTarget(String target) {
+        this.target = target;
+    }
+
+    public Map<String, String> getAai() {
+        return aai;
+    }
+
+    public void setAai(Map<String, String> aai) {
+        this.aai = aai;
+    }
+
     @Override
     public String toString() {
         return "PolicyNotification [closedLoopControlName=" + closedLoopControlName + ", closedLoopAlarmStart="
                 + closedLoopAlarmStart + ", closedLoopEventClient=" + closedLoopEventClient + ", closedLoopEventStatus="
-                + closedLoopEventStatus + ", requestId=" + requestId + ", aai=" + aai + ", from=" + from + ", version="
-                + version + ", action=" + action + ", payload=" + payload + "]";
+                + closedLoopEventStatus + ", targetType=" + targetType + ", target=" + target + ", requestId="
+                + requestId + ", aai=" + aai + ", from=" + from + ", version=" + version + ", action=" + action
+                + ", payload=" + payload + "]";
     }
 
 }

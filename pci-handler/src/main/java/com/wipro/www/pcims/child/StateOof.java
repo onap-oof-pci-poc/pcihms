@@ -31,7 +31,6 @@ import com.wipro.www.pcims.dmaap.PolicyDmaapClient;
 import com.wipro.www.pcims.entity.CellInfo;
 import com.wipro.www.pcims.entity.PciRequests;
 import com.wipro.www.pcims.exceptions.ConfigDbNotFoundException;
-import com.wipro.www.pcims.model.Aai;
 import com.wipro.www.pcims.model.CellConfig;
 import com.wipro.www.pcims.model.CellPciPair;
 import com.wipro.www.pcims.model.Common;
@@ -42,7 +41,7 @@ import com.wipro.www.pcims.model.Lte;
 import com.wipro.www.pcims.model.Payload;
 import com.wipro.www.pcims.model.PolicyNotification;
 import com.wipro.www.pcims.model.Ran;
-import com.wipro.www.pcims.model.Rf;
+import com.wipro.www.pcims.model.X0005b9Lte;
 import com.wipro.www.pcims.restclient.AsyncResponseBody;
 import com.wipro.www.pcims.restclient.CellIdList;
 import com.wipro.www.pcims.restclient.OofRestClient;
@@ -207,10 +206,9 @@ public class StateOof {
         ArrayList<Configurations> configurations = new ArrayList<>();
         for (CellPciPair cellPciPair : cellPciPairs) {
             String cellId = cellPciPair.getCellId();
-            String pci = Integer.toString(cellPciPair.getPhysicalCellId());
-            Configurations configuration = new Configurations(new Data(
-                    new FapService(networkId, new CellConfig(new Lte(new Ran(new Rf(pci), new Common(cellId)))))),
-                    pnfName);
+            int pci = cellPciPair.getPhysicalCellId();
+            Configurations configuration = new Configurations(new Data(new FapService(cellId,
+                    new X0005b9Lte(pci, pnfName), new CellConfig(new Lte(new Ran(new Common(cellId)))))));
             configurations.add(configuration);
         }
 
@@ -227,7 +225,6 @@ public class StateOof {
         String closedLoopControlName = (String) configPolicy.getConfig().get("PCI_MODCONFIG_POLICY_NAME");
         policyNotification.setClosedLoopControlName(closedLoopControlName);
         policyNotification.setPayload(payloadString);
-        policyNotification.setAai(new Aai());
 
         mapper.setSerializationInclusion(Include.NON_NULL);
         String notification = "";

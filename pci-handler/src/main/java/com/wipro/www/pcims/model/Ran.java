@@ -24,9 +24,6 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 public class Ran {
 
-    @JsonProperty(value = "RF")
-    private Rf rf;
-
     @JsonProperty(value = "Common")
     private Common common;
 
@@ -37,18 +34,9 @@ public class Ran {
     /**
      * Parameterized constructor.
      */
-    public Ran(Rf rf, Common common) {
+    public Ran(Common common) {
         super();
-        this.rf = rf;
         this.common = common;
-    }
-
-    public Rf getRf() {
-        return rf;
-    }
-
-    public void setRf(Rf rf) {
-        this.rf = rf;
     }
 
     public Common getCommon() {

@@ -27,6 +27,9 @@ public class FapService {
     @JsonProperty("alias")
     private String alias;
 
+    @JsonProperty("X0005b9Lte")
+    private X0005b9Lte x0005b9Lte;
+
     @JsonProperty("CellConfig")
     private CellConfig cellConfig;
 
@@ -37,9 +40,10 @@ public class FapService {
     /**
      * Parameterized constructor.
      */
-    public FapService(String alias, CellConfig cellConfig) {
+    public FapService(String alias, X0005b9Lte x0005b9Lte, CellConfig cellConfig) {
         super();
         this.alias = alias;
+        this.x0005b9Lte = x0005b9Lte;
         this.cellConfig = cellConfig;
     }
 
@@ -57,6 +61,14 @@ public class FapService {
 
     public void setCellConfig(CellConfig cellConfig) {
         this.cellConfig = cellConfig;
+    }
+
+    public X0005b9Lte getX0005b9Lte() {
+        return x0005b9Lte;
+    }
+
+    public void setX0005b9Lte(X0005b9Lte x0005b9Lte) {
+        this.x0005b9Lte = x0005b9Lte;
     }
 
 }

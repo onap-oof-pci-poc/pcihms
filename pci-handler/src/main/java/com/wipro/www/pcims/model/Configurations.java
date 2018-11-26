@@ -26,9 +26,6 @@ public class Configurations {
     @JsonProperty("data")
     private Data data;
 
-    @JsonProperty("pnf-name")
-    private String pnfName;
-
     /**
      * constructor.
      *
@@ -41,10 +38,9 @@ public class Configurations {
      * Parameterized constructor.
      *
      */
-    public Configurations(Data data, String pnfName) {
+    public Configurations(Data data) {
         super();
         this.data = data;
-        this.pnfName = pnfName;
     }
 
     public Data getData() {
@@ -53,14 +49,6 @@ public class Configurations {
 
     public void setData(Data data) {
         this.data = data;
-    }
-
-    public String getPnfName() {
-        return pnfName;
-    }
-
-    public void setPnfName(String pnfName) {
-        this.pnfName = pnfName;
     }
 
 }
