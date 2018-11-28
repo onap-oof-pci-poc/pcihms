@@ -31,6 +31,7 @@ import com.wipro.www.pcims.dmaap.PolicyDmaapClient;
 import com.wipro.www.pcims.entity.CellInfo;
 import com.wipro.www.pcims.entity.PciRequests;
 import com.wipro.www.pcims.exceptions.ConfigDbNotFoundException;
+import com.wipro.www.pcims.exceptions.OofNotFoundException;
 import com.wipro.www.pcims.model.CellConfig;
 import com.wipro.www.pcims.model.CellPciPair;
 import com.wipro.www.pcims.model.Common;
@@ -80,8 +81,9 @@ public class StateOof {
 
     /**
      * Triggers OOF.
+     * @throws OofNotFoundException  when trigger oof fails
      */
-    public void triggerOof(Map<String, ArrayList<Integer>> result, String networkId) {
+    public void triggerOof(Map<String, ArrayList<Integer>> result, String networkId) throws OofNotFoundException {
         // check for 0 collision and 0 confusion
         ArrayList<CellIdList> cellidList = new ArrayList<>();
         ArrayList<String> cellIds = new ArrayList<>();

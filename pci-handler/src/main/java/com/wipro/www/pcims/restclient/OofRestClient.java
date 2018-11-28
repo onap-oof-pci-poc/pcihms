@@ -24,6 +24,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.wipro.www.pcims.ConfigPolicy;
 import com.wipro.www.pcims.Configuration;
+import com.wipro.www.pcims.exceptions.OofNotFoundException;
 import com.wipro.www.pcims.utils.HttpRequester;
 import java.util.List;
 import java.util.UUID;
@@ -39,10 +40,11 @@ public class OofRestClient {
 
     /**
      * rest client that pci uses to query the OOF for pci solutions.
+     * @throws OofNotFoundException when request to oof fails
      */
 
     public static String queryOof(int numSolutions, String transactionId, String requestType,
-            List<CellIdList> cellIdList, String networkId, List<String> optimizers) {
+            List<CellIdList> cellIdList, String networkId, List<String> optimizers) throws OofNotFoundException {
         log.debug("inside queryoof");
 
         String response = "";
@@ -80,10 +82,13 @@ public class OofRestClient {
             log.debug("requestBody{}", requestBody);
 
             String requestUrl = configuration.getOofService() + "/api/oof/v1/pci";
-            log.debug("requestUrl{}", requestUrl);
+            log.debug("requestUrl {}", requestUrl);
 
-            response = HttpRequester.sendPostRequest(requestUrl, requestBody);
-            log.debug("response{}", response);
+            response = HttpRequester.sendPostRequestToOof(requestUrl, requestBody);
+            if (response == null) {
+            	throw new OofNotFoundException("Request to oof failed");
+            }
+            log.debug("response {}", response);
 
             return response;
         } catch (JsonProcessingException e) {

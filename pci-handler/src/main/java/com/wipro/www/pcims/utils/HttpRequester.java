@@ -240,4 +240,45 @@ public class HttpRequester {
         return response;
     }
 
+    /**
+    * Send Post Request to oof.
+    */
+    public static String sendPostRequestToOof(String requestUrl, String requestBody) {
+        String response = "";
+
+        try {
+            URL url = new URL(requestUrl);
+            HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+            connection.setDoOutput(true);
+            connection.setDoInput(true);
+            connection.setRequestMethod("POST");
+            connection.setRequestProperty(ACCEPT, JSON);
+            connection.setRequestProperty(CONTENT, JSON);
+            connection.setRequestProperty(AUTH, "Basic cGNpX3Rlc3Q6cGNpX3Rlc3Rwd2Q=");
+            OutputStreamWriter writer = new OutputStreamWriter(connection.getOutputStream(), UTF);
+            writer.write(requestBody);
+            writer.close();
+            BufferedReader br = new BufferedReader(new InputStreamReader(connection.getInputStream()));
+            String temp;
+            int responseCode = connection.getResponseCode();
+            log.debug("response code: {}", responseCode);
+            response = br.readLine();
+            while ((temp = br.readLine()) != null) {
+                response = response.concat(temp);
+            }
+            br.close();
+            connection.disconnect();
+
+            if (response == null) {
+                log.debug("Response code: {}", responseCode);
+            }
+
+        } catch (Exception e) {
+            log.debug("exception occured when posting: {}", e);
+            return null;
+        }
+
+        return response;
+    }
+
 }
