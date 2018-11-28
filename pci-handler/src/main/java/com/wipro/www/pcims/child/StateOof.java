@@ -44,7 +44,6 @@ import com.wipro.www.pcims.model.PolicyNotification;
 import com.wipro.www.pcims.model.Ran;
 import com.wipro.www.pcims.model.X0005b9Lte;
 import com.wipro.www.pcims.restclient.AsyncResponseBody;
-import com.wipro.www.pcims.restclient.CellIdList;
 import com.wipro.www.pcims.restclient.OofRestClient;
 import com.wipro.www.pcims.restclient.PciSolution;
 import com.wipro.www.pcims.restclient.SdnrRestClient;
@@ -85,7 +84,7 @@ public class StateOof {
      */
     public void triggerOof(Map<String, ArrayList<Integer>> result, String networkId) throws OofNotFoundException {
         // check for 0 collision and 0 confusion
-        ArrayList<CellIdList> cellidList = new ArrayList<>();
+        ArrayList<String> cellidList = new ArrayList<>();
         ArrayList<String> cellIds = new ArrayList<>();
 
         for (Map.Entry<String, ArrayList<Integer>> entry : result.entrySet()) {
@@ -104,9 +103,7 @@ public class StateOof {
 
         for (String cell : cellIds) {
             log.debug("cellidList entries: {}", cell);
-            CellIdList cells = new CellIdList();
-            cells.setCellId(cell);
-            cellidList.add(cells);
+            cellidList.add(cell);
         }
         log.debug("the cells triggering the oof are {}", cellidList);
 

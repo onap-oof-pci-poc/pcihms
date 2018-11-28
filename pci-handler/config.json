@@ -38,7 +38,7 @@
 	"oofService": "http://OOF_SERVICE",
 	"policyService": "https://POLICY_SERVICE",
 	"sourceId": "PCIHMS",
-	"callbackUrl": "http://pcims:8080/callbackUrl",
+	"callbackUrl": "http://pcims.onap:8080/callbackUrl",
 	"policyName": "com.Config_PCIMS_CONFIG_POLICY.1.xml",
 	"configName": "PCIMS_CONFIG_POLICY",
 	"optimizers": ["pci"],

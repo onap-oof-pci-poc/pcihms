@@ -44,7 +44,7 @@ public class OofRestClient {
      */
 
     public static String queryOof(int numSolutions, String transactionId, String requestType,
-            List<CellIdList> cellIdList, String networkId, List<String> optimizers) throws OofNotFoundException {
+            List<String> cellIdList, String networkId, List<String> optimizers) throws OofNotFoundException {
         log.debug("inside queryoof");
 
         String response = "";

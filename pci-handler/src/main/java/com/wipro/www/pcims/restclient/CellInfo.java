@@ -25,11 +25,7 @@ import java.util.List;
 
 public class CellInfo {
     String networkId = null;
-    List<CellIdList> cellIdList = new ArrayList<>();
-
-    public void setCellIdList(List<CellIdList> cellIdList) {
-        this.cellIdList = cellIdList;
-    }
+    List<String> cellIdList = new ArrayList<>();
 
     public String getNetworkId() {
         return networkId;
@@ -39,8 +35,14 @@ public class CellInfo {
         this.networkId = networkId;
     }
 
-    public List<CellIdList> getCellIdList() {
-        return cellIdList;
-    }
+	public List<String> getCellIdList() {
+		return cellIdList;
+	}
+
+	public void setCellIdList(List<String> cellIdList) {
+		this.cellIdList = cellIdList;
+	}
+
+    
 
 }
